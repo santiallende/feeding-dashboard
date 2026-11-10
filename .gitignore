@@ -1,0 +1,7 @@
+# raw health data never goes to GitHub; only the encrypted bundle does
+*.csv
+data.js
+events.json
+.passphrase
+.DS_Store
+profile.json

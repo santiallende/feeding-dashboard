@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Feeding dashboard</title>
+<style>
+:root {
+  color-scheme: light;
+  --page: #f3f0e9; --surface: #fbfaf7;
+  --ink: #171c1b; --ink-2: #4f5755; --muted: #86908d;
+  --grid: #e7e3da; --axis: #cfcabf; --border: rgba(23,28,27,0.08);
+  --s1: #0a9488; --s1-light: #a9dfd8; --s1-mid: #4fb8ad; --s1-dark: #0b6b63;
+  --s2: #e0633a; --s3: #5c5bd8; --s4: #d79a00; --s5: #c8528e;
+  --div-neg: #d6453f; --div-mid: #e7e3da;
+  --good-text: #0b6b42; --bad-text: #b8322c;
+  --seq-100:#d5f0ec; --seq-200:#a9dfd8; --seq-300:#7fcdc4; --seq-400:#4fb8ad; --seq-500:#1fa39a; --seq-600:#0a9488; --seq-700:#0b6b63;
+  --control-bg: #ffffff; --control-hover: rgba(23,28,27,0.05); --selected: rgba(10,148,136,0.14);
+  --shadow: 0 1px 2px rgba(23,28,27,0.04), 0 10px 30px rgba(23,28,27,0.06);
+  --glow: radial-gradient(900px 420px at 15% -10%, rgba(10,148,136,0.14), transparent 60%), radial-gradient(700px 380px at 95% 0%, rgba(224,99,58,0.08), transparent 60%);
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --page: #0e1312; --surface: #171d1c;
+    --ink: #eef2f0; --ink-2: #b7c0bd; --muted: #7f8a87;
+    --grid: #263230; --axis: #34413e; --border: rgba(255,255,255,0.08);
+    --s1: #1fa39a; --s1-light: #1b5a54; --s1-mid: #4fb8ad; --s1-dark: #a9dfd8;
+    --s2: #df6a44; --s3: #7c7be6; --s4: #b98a10; --s5: #cc5d98;
+    --div-neg: #e46b66; --div-mid: #263230;
+    --good-text: #3ccf8e; --bad-text: #e46b66;
+    --seq-100:#0b3f3a; --seq-200:#0b5951; --seq-300:#0a7069; --seq-400:#0a8a80; --seq-500:#1fa39a; --seq-600:#4fb8ad; --seq-700:#a9dfd8;
+    --control-bg: #1f2726; --control-hover: rgba(255,255,255,0.06); --selected: rgba(31,163,154,0.22);
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 10px 30px rgba(0,0,0,0.35);
+    --glow: radial-gradient(900px 420px at 15% -10%, rgba(31,163,154,0.18), transparent 60%), radial-gradient(700px 380px at 95% 0%, rgba(223,106,68,0.10), transparent 60%);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0e1312; --surface: #171d1c;
+  --ink: #eef2f0; --ink-2: #b7c0bd; --muted: #7f8a87;
+  --grid: #263230; --axis: #34413e; --border: rgba(255,255,255,0.08);
+  --s1: #1fa39a; --s1-light: #1b5a54; --s1-mid: #4fb8ad; --s1-dark: #a9dfd8;
+  --s2: #df6a44; --s3: #7c7be6; --s4: #b98a10; --s5: #cc5d98;
+  --div-neg: #e46b66; --div-mid: #263230;
+  --good-text: #3ccf8e; --bad-text: #e46b66;
+  --seq-100:#0b3f3a; --seq-200:#0b5951; --seq-300:#0a7069; --seq-400:#0a8a80; --seq-500:#1fa39a; --seq-600:#4fb8ad; --seq-700:#a9dfd8;
+  --control-bg: #1f2726; --control-hover: rgba(255,255,255,0.06); --selected: rgba(31,163,154,0.22);
+  --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 10px 30px rgba(0,0,0,0.35);
+  --glow: radial-gradient(900px 420px at 15% -10%, rgba(31,163,154,0.18), transparent 60%), radial-gradient(700px 380px at 95% 0%, rgba(223,106,68,0.10), transparent 60%);
+}
+* { box-sizing: border-box; }
+html { background: var(--page); }
+body { margin: 0; background: var(--glow), var(--page); color: var(--ink); font: 14px/1.5 -apple-system, "SF Pro Text", Inter, system-ui, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+a { color: inherit; }
+.wrap { max-width: 1320px; margin: 0 auto; padding: 28px 28px 72px; }
+header.top { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+header.top h1 { font-size: 30px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 4px; line-height: 1.1; }
+header.top .sub { color: var(--ink-2); font-size: 13.5px; max-width: 820px; }
+.eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); }
+.toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+button, select, input[type=text], input[type=date], input[type=number], textarea {
+  font: inherit; color: var(--ink); background: var(--control-bg); border: 1px solid var(--border); border-radius: 10px; padding: 7px 12px;
+}
+button { cursor: pointer; transition: background .15s, transform .05s; }
+button:hover { background: var(--control-hover); }
+button:active { transform: translateY(1px); }
+button.primary { background: var(--s1); color: #fff; border-color: transparent; font-weight: 600; }
+button.primary:hover { filter: brightness(1.08); background: var(--s1); }
+button.ghost { border-color: transparent; color: var(--ink-2); background: transparent; }
+button.danger { color: var(--bad-text); }
+.filters { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; padding: 10px 14px; background: color-mix(in srgb, var(--surface) 86%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid var(--border); border-radius: 14px; margin: 12px 0 20px; position: sticky; top: 10px; z-index: 5; box-shadow: var(--shadow); }
+.filters .group { display: flex; align-items: center; gap: 6px; }
+.filters .group label.title { color: var(--muted); font-size: 11px; font-weight: 600; margin-right: 2px; text-transform: uppercase; letter-spacing: .08em; }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--control-bg); }
+.seg button { border: 0; border-radius: 0; padding: 6px 12px; background: transparent; }
+.seg button + button { border-left: 1px solid var(--border); }
+.seg button[aria-pressed="true"] { background: var(--selected); font-weight: 600; color: var(--ink); }
+.filters .custom { display: none; gap: 6px; align-items: center; }
+.filters .custom.show { display: flex; }
+.check { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.check input { accent-color: var(--s1); }
+.grid { display: grid; gap: 18px; grid-template-columns: repeat(12, 1fr); }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 20px 22px; grid-column: span 12; min-width: 0; box-shadow: var(--shadow); }
+.card h2 { font-size: 16px; font-weight: 650; letter-spacing: -0.01em; margin: 0 0 2px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.card h2 .tools { display: inline-flex; gap: 6px; }
+.card h2 .tools button { padding: 3px 10px; font-size: 12px; border-radius: 8px; }
+.card .desc { color: var(--ink-2); font-size: 13px; margin: 0 0 12px; max-width: 980px; }
+.card.span6 { grid-column: span 6; }
+@media (max-width: 980px) { .card.span6 { grid-column: span 12; } }
+/* hero */
+.hero { padding: 22px 24px 18px; }
+.hero-grid { display: grid; grid-template-columns: minmax(230px, 290px) 1fr; gap: 26px; align-items: start; }
+@media (max-width: 900px) { .hero-grid { grid-template-columns: 1fr; } }
+.hero-side .eyebrow { margin-bottom: 8px; }
+.hero-value { font-size: 58px; font-weight: 700; letter-spacing: -0.035em; line-height: 1; margin: 2px 0 6px; }
+.hero-value small { font-size: 18px; font-weight: 500; letter-spacing: 0; color: var(--ink-2); margin-left: 6px; }
+.hero-sub { color: var(--ink-2); font-size: 13.5px; margin-bottom: 14px; }
+.hero-sub .up { color: var(--good-text); font-weight: 600; } .hero-sub .down { color: var(--bad-text); font-weight: 600; }
+.hero-facts { display: grid; grid-template-columns: 1fr; gap: 0; border-top: 1px solid var(--grid); }
+.hero-facts .fact { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--grid); font-size: 13px; }
+.hero-facts .fact span:first-child { color: var(--ink-2); }
+.hero-facts .fact b { font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
+.hero-main { min-width: 0; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin: 18px 0; }
+.tile { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 14px 16px; box-shadow: var(--shadow); }
+.tile .label { color: var(--ink-2); font-size: 12.5px; }
+.tile .value { font-size: 30px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; margin-top: 4px; }
+.tile .value small { font-size: 14px; font-weight: 500; letter-spacing: 0; color: var(--ink-2); margin-left: 3px; }
+.tile .delta { font-size: 12.5px; color: var(--ink-2); margin-top: 4px; }
+.tile .delta .up { color: var(--good-text); } .tile .delta .down { color: var(--bad-text); }
+.tile svg { display: block; margin-top: 8px; }
+.chart { position: relative; width: 100%; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.chart svg text { font-family: inherit; }
+.axis text { fill: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+.axis .age { fill: var(--muted); font-size: 10px; }
+.axis line, .axis path { stroke: var(--axis); }
+.gridline { stroke: var(--grid); stroke-width: 1; shape-rendering: crispEdges; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12.5px; color: var(--ink-2); margin: 6px 0 6px; }
+.legend .key { display: inline-flex; align-items: center; gap: 6px; }
+.legend .sw { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.legend .ln { width: 16px; height: 2px; border-radius: 1px; display: inline-block; }
+.legend .tri { width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 9px solid var(--ink-2); display: inline-block; }
+.tooltip { position: fixed; pointer-events: none; z-index: 50; background: var(--surface); color: var(--ink); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.16); padding: 9px 11px; font-size: 12.5px; min-width: 160px; display: none; }
+.tooltip .tt-title { color: var(--ink-2); margin-bottom: 5px; font-weight: 600; }
+.tooltip .row { display: flex; justify-content: space-between; gap: 14px; align-items: center; line-height: 1.6; }
+.tooltip .row .k { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); }
+.tooltip .row .k i { display: inline-block; width: 12px; height: 2px; border-radius: 1px; }
+.tooltip .row b { font-weight: 600; font-variant-numeric: tabular-nums; }
+.tooltip { max-width: 340px; }
+.tooltip .para { color: var(--ink-2); margin-top: 7px; padding-top: 7px; border-top: 1px solid var(--grid); line-height: 1.45; white-space: normal; }
+.tile.help { cursor: help; }
+details.howto { margin: 4px 0 14px; font-size: 13px; color: var(--ink-2); }
+details.howto summary { cursor: pointer; font-weight: 600; color: var(--ink); list-style: none; display: inline-flex; align-items: center; gap: 6px; }
+details.howto summary::before { content: '▸'; font-size: 11px; transition: transform .15s; }
+details[open].howto summary::before { transform: rotate(90deg); }
+details.howto dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; margin: 10px 0 0; max-width: 980px; }
+details.howto dt { font-weight: 600; color: var(--ink); }
+details.howto dd { margin: 0; }
+table.data { width: 100%; border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+table.data th, table.data td { padding: 6px 8px; border-bottom: 1px solid var(--grid); text-align: right; white-space: nowrap; }
+table.data th:first-child, table.data td:first-child { text-align: left; }
+table.data th { color: var(--ink-2); font-weight: 600; position: sticky; top: 0; background: var(--surface); }
+.tablewrap { max-height: 360px; overflow: auto; border-radius: 10px; }
+.hidden { display: none !important; }
+.events-form { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr 1.6fr auto; gap: 8px; align-items: end; margin-bottom: 14px; }
+.events-form label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--ink-2); }
+.events-form input, .events-form select { width: 100%; }
+@media (max-width: 980px) { .events-form { grid-template-columns: 1fr 1fr; } }
+.event-list { display: flex; flex-direction: column; gap: 6px; }
+.event-row { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border: 1px solid var(--border); border-radius: 10px; background: color-mix(in srgb, var(--surface) 60%, var(--page)); }
+.event-row .dot { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+.event-row .name { font-weight: 600; }
+.event-row .meta { color: var(--ink-2); font-size: 12.5px; flex: 1; }
+.event-row button { padding: 2px 9px; font-size: 12px; border-radius: 8px; }
+.callout { background: var(--selected); border-radius: 12px; padding: 12px 14px; margin: 8px 0 14px; font-size: 13.5px; line-height: 1.55; }
+.callout b { font-weight: 650; }
+.stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 12px; }
+.stat-row .tile { padding: 12px 14px; box-shadow: none; }
+.stat-row .tile .value { font-size: 24px; }
+.note { color: var(--muted); font-size: 12px; margin-top: 10px; line-height: 1.5; }
+.ann-label { font-size: 11px; fill: var(--ink-2); }
+.cell:hover, .bar:hover { filter: brightness(1.12); }
+dialog { border: 1px solid var(--border); border-radius: 16px; background: var(--surface); color: var(--ink); padding: 20px 22px; max-width: 520px; box-shadow: var(--shadow); }
+dialog::backdrop { background: rgba(0,0,0,.4); }
+dialog label { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; font-size: 13px; color: var(--ink-2); }
+.small-multiples { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
+.sm h3 { font-size: 13px; font-weight: 600; margin: 0 0 2px; color: var(--ink); }
+.sm .cur { font-size: 12px; color: var(--ink-2); margin-bottom: 4px; }
+.pill { display: inline-block; font-size: 11.5px; font-weight: 500; letter-spacing: 0; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--border); color: var(--ink-2); margin-left: 8px; vertical-align: middle; background: var(--control-bg); }
+.subcard { border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; min-width: 0; }
+.subcard h3 { font-size: 13.5px; font-weight: 600; margin: 0 0 4px; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 980px) { .two { grid-template-columns: 1fr; } }
+.set-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; }
+.set-grid.three { grid-template-columns: 1fr 1fr 1fr; }
+.set-grid label { margin-bottom: 4px; }
+dialog { max-width: 620px; width: min(620px, 92vw); }
+dialog textarea { font: inherit; color: var(--ink); background: var(--control-bg); border: 1px solid var(--border); border-radius: 10px; padding: 7px 12px; resize: vertical; }
+dialog code { font-size: 12px; }
+.growth-two { grid-template-columns: 1.6fr 1fr; }
+@media (max-width: 980px) { .growth-two { grid-template-columns: 1fr; } }
+.gate { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; background: var(--glow), var(--page); padding: 20px; }
+.gate-card { width: min(440px, 100%); background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 28px 30px; box-shadow: var(--shadow); }
+.gate-card h2 { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; margin: 8px 0 6px; }
+.gate-card p { color: var(--ink-2); margin: 0 0 16px; }
+.gate-card form { display: flex; gap: 8px; }
+.gate-card input { flex: 1; padding: 10px 12px; font-size: 15px; }
+.gate-card button { padding: 10px 16px; }
+.gate-card p.gate-err { color: var(--bad-text); min-height: 1.4em; margin: 10px 0 0 !important; font-size: 13px; }
+body.locked .wrap { visibility: hidden; }
+@media print {
+  body { background: #fff; }
+  .wrap { padding: 0; max-width: none; }
+  .filters, .toolbar, .events-form, .tools, .event-row button, .pill { display: none !important; }
+  .card, .tile { box-shadow: none; break-inside: avoid; border-color: #ddd; }
+  .grid { display: block; } .card { margin-bottom: 14px; }
+  .tablewrap { max-height: none; overflow: visible; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow" id="prepared"></div>
+      <h1><span id="titleText">Feeding dashboard</span> <span class="pill" id="ageLabel"></span></h1>
+      <div class="sub" id="dataRange"></div>
+    </div>
+    <div class="toolbar">
+      <button id="btnLoadCsv" title="Load a newer Huckleberry export (kept in this browser until reset)">Load newer CSV…</button>
+      <input type="file" id="fileCsv" accept=".csv,text/csv" class="hidden">
+      <button id="btnResetCsv" class="ghost hidden" title="Go back to the CSV bundled with this folder">Use bundled CSV</button>
+      <button id="btnPrint" title="Print or save as PDF for a provider">Print / PDF</button>
+      <button id="btnLock" class="ghost hidden" title="Forget the passphrase in this tab">Lock</button>
+      <button id="btnSettings" class="ghost">Settings</button>
+      <button id="btnTheme" class="ghost" title="Toggle light / dark">◐</button>
+    </div>
+  </header>
+
+  <div class="filters" role="region" aria-label="Filters">
+    <div class="group">
+      <label class="title">Range</label>
+      <div class="seg" id="rangeSeg">
+        <button data-range="all" aria-pressed="true">All</button>
+        <button data-range="90" aria-pressed="false">90 days</button>
+        <button data-range="30" aria-pressed="false">30 days</button>
+        <button data-range="14" aria-pressed="false">14 days</button>
+        <button data-range="custom" aria-pressed="false">Custom</button>
+      </div>
+      <div class="custom" id="customRange">
+        <input type="date" id="fromDate"> <span style="color:var(--muted)">to</span> <input type="date" id="toDate">
+      </div>
+    </div>
+    <div class="group">
+      <label class="title">Granularity</label>
+      <div class="seg" id="granSeg">
+        <button data-gran="daily" aria-pressed="true">Daily</button>
+        <button data-gran="weekly" aria-pressed="false">Weekly</button>
+        <button data-gran="monthly" aria-pressed="false">Monthly</button>
+      </div>
+    </div>
+    <div class="group">
+      <label class="title">Per weight</label>
+      <div class="seg" id="unitSeg">
+        <button data-measure="kcal" aria-pressed="true">kcal/kg</button>
+        <button data-measure="fluid" aria-pressed="false">ml/kg</button>
+        <button data-measure="ozlb" aria-pressed="false">oz/lb</button>
+      </div>
+    </div>
+    <label class="check" title="Days covered by an illness event are dropped from averages, the trend line and the lead-lag analysis"><input type="checkbox" id="excludeIll"> Exclude illness days</label>
+    <label class="check" title="Show event bands and markers on the charts"><input type="checkbox" id="showEvents" checked> Show events on charts</label>
+  </div>
+
+  <div class="card hero" id="cardHero">
+    <div class="hero-grid">
+      <div class="hero-side">
+        <div class="eyebrow">Intake per body weight</div>
+        <div class="hero-value" id="heroValue">–</div>
+        <div class="hero-sub" id="heroSub"></div>
+        <div class="hero-facts" id="heroFacts"></div>
+      </div>
+      <div class="hero-main">
+        <h2 id="heroTitle">Daily intake relative to weight <span class="tools"><button data-table="hero">Table</button></span></h2>
+        <p class="desc" id="heroDesc"></p>
+        <div class="legend" id="heroLegend"></div>
+        <div class="chart" id="heroChart"></div>
+        <div class="tablewrap hidden" id="heroTable"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card hero" id="cardGrowth">
+    <div class="hero-grid">
+      <div class="hero-side">
+        <div class="eyebrow">Weight for age</div>
+        <div class="hero-value" id="growthValue">–</div>
+        <div class="hero-sub" id="growthSub"></div>
+        <div class="hero-facts" id="growthFacts"></div>
+      </div>
+      <div class="hero-main">
+        <h2>Weight against the WHO growth standard for girls <span class="tools"><button data-table="growth">Table</button></span></h2>
+        <p class="desc" id="growthDesc"></p>
+        <div class="legend" id="growthLegend"></div>
+        <div class="two growth-two" id="growthCharts">
+          <div class="chart" id="growthChart"></div>
+          <div class="chart" id="pctChart"></div>
+        </div>
+        <div class="tablewrap hidden" id="growthTable"></div>
+      </div>
+    </div>
+  </div>
+
+  <section class="kpis" id="kpis"></section>
+
+  <div class="grid">
+    <div class="card" id="cardIntake">
+      <h2>Intake <span class="tools"><button data-table="intake">Table</button></span></h2>
+      <p class="desc" id="intakeDesc"></p>
+      <div class="legend" id="intakeLegend"></div>
+      <div class="chart" id="intakeChart"></div>
+      <div class="tablewrap hidden" id="intakeTable"></div>
+    </div>
+
+    <div class="card" id="cardSM">
+      <h2>How she's eating <span class="tools"><button data-table="sm">Table</button></span></h2>
+      <p class="desc">Each panel is one measure per period on its own axis. Event bands repeat on every panel so you can line them up with the intake chart.</p>
+      <div class="small-multiples" id="smCharts"></div>
+      <div class="tablewrap hidden" id="smTable"></div>
+    </div>
+
+    <div class="card span6" id="cardHeat">
+      <h2>When she eats <span class="tools"><button data-table="heat">Table</button></span></h2>
+      <p class="desc">Average ounces per day in each hour, by week. Darker is more.</p>
+      <div class="chart" id="heatChart"></div>
+      <div class="tablewrap hidden" id="heatTable"></div>
+    </div>
+
+    <div class="card span6" id="cardFeedSize">
+      <h2>Bottle size vs. time to the next feed <span class="tools"><button data-table="feedsize">Table</button></span></h2>
+      <p class="desc">Does a bigger bottle buy a longer stretch? Each dot is a feed in the selected range. The line is the average stretch for each half-ounce.</p>
+      <div class="chart" id="feedSizeChart"></div>
+      <div id="feedSizeStats" class="note"></div>
+      <div class="tablewrap hidden" id="feedSizeTable"></div>
+    </div>
+
+    <div class="card" id="cardLag">
+      <h2>Hunger drive: does a light day lead to a heavier one? <span class="tools"><button data-table="lag">Table</button></span></h2>
+      <p class="desc">Each day is compared with the average of its neighbours (three days either side) so growth doesn't masquerade as correlation. The "residual" is ounces above or below that local trend. A lag-1 correlation <b>more negative than shuffled days produce</b> means she compensates (light day, then heavier day). One <b>more positive</b> means light days cluster, which usually points to illness or teething rather than appetite.</p>
+      <details class="howto"><summary>How to read this section</summary>
+        <dl>
+          <dt>Trend</dt><dd>What the surrounding week predicts for a day: the average of the three days before and the three after, with the day itself left out. It tracks growth and slow changes so they don't get mistaken for day-to-day behaviour.</dd>
+          <dt>Residual, "vs trend"</dt><dd>How far a day's ounces landed from its trend. +2.0 means two ounces more than the surrounding week predicted; −2.0 means two fewer.</dd>
+          <dt>Light / typical / heavy day</dt><dd>The lightest, middle and heaviest third of days by residual, so each group has the same number of days.</dd>
+          <dt>Correlation (r)</dt><dd>From −1 to +1. Negative: a low day tends to be followed by a high one (catch-up). Positive: low days follow low days (runs). Near zero: tomorrow is unrelated to today.</dd>
+          <dt>Shuffled days / expected by chance</dt><dd>The same calculation run 400 times with the days in random order. It is not zero, because comparing each day to its neighbours builds in a small negative correlation on its own. The bar is only meaningful where it escapes this gray range.</dd>
+          <dt>p</dt><dd>The chance of seeing a gap at least this large between the real result and the shuffled ones if nothing were going on. Below 0.05 is the usual bar for "probably real".</dd>
+          <dt>Slope</dt><dd>How many ounces tomorrow moves for each ounce today is off trend. −0.5 would mean she makes up half of any shortfall the next day.</dd>
+        </dl>
+      </details>
+      <div class="callout" id="lagCallout"></div>
+      <div class="stat-row" id="lagTiles"></div>
+      <div class="two">
+        <div class="subcard">
+          <h3>Correlation of today's residual with the residual <i>k</i> days later</h3>
+          <div class="legend"><span class="key"><span class="sw" style="background:var(--s1)"></span>positive (persistence)</span><span class="key"><span class="sw" style="background:var(--div-neg)"></span>negative (compensation)</span><span class="key"><span class="sw" style="background:var(--grid)"></span>what shuffled days give (95% range, tick = mean)</span></div>
+          <div class="chart" id="acfChart"></div>
+        </div>
+        <div class="subcard">
+          <h3>Today's residual vs. tomorrow's</h3>
+          <div class="legend"><span class="key"><span class="ln" style="background:var(--s1-dark)"></span>least-squares fit<span id="scatterFit"></span></span><span class="key"><span class="sw" style="background:var(--s1);border-radius:50%"></span>one pair of consecutive days</span></div>
+          <div class="chart" id="scatterChart"></div>
+        </div>
+      </div>
+      <div class="tablewrap hidden" id="lagTable"></div>
+      <p class="note" id="lagNote"></p>
+    </div>
+
+    <div class="card" id="cardEvents">
+      <h2>Events &amp; before/after comparison <span class="tools"><button id="btnResetEvents" class="hidden" title="Discard the events saved in this browser and show the published list">Use published events</button><button id="btnExportEvents">Export JSON</button><button id="btnImportEvents">Import JSON</button><input type="file" id="fileEvents" accept=".json" class="hidden"></span></h2>
+      <p class="desc">Add things that happened: a prescription, the first day of daycare, a cold. They're drawn on every chart and compared below. Events are saved in this browser; export to keep a copy in the folder.</p>
+      <form class="events-form" id="eventForm">
+        <label>Name <input type="text" id="evName" placeholder="e.g. Started daycare" required></label>
+        <label>Category <select id="evCat"><option value="medication">Medication</option><option value="daycare">Daycare</option><option value="illness">Illness</option><option value="other">Other</option></select></label>
+        <label>Start <input type="date" id="evStart" required></label>
+        <label>End (blank = single day) <input type="date" id="evEnd"></label>
+        <label>Notes <input type="text" id="evNotes" placeholder="optional"></label>
+        <button type="submit" class="primary" id="evSubmit">Add event</button>
+      </form>
+      <div class="legend" id="evLegend"></div>
+      <div class="event-list" id="eventList"></div>
+      <h2 style="margin-top:18px;font-size:14px">Before vs. after each event <span class="tools"><span class="seg" id="winSeg"><button data-win="7" aria-pressed="true">7-day windows</button><button data-win="14" aria-pressed="false">14-day windows</button></span></span></h2>
+      <p class="desc">"Before" is the window ending the day before the event; "during" is the event's own days (ranges only); "after" is the window starting the day after it ends (or on the event day for single-day events). Partial and excluded days are skipped. Hover a row for a plain-language reading.</p>
+      <details class="howto"><summary>How to read this section</summary>
+        <dl>
+          <dt>Before / after</dt><dd>Average ounces per day in the 7 (or 14) full days on either side of the event. A single-day event's "after" window starts on the event day itself.</dd>
+          <dt>During</dt><dd>For events with an end date, the average over the event's own days, shown as a diamond in the event's colour.</dd>
+          <dt>Change</dt><dd>After minus before. Judge it against her normal day-to-day swing (see the hunger-drive card): a one-ounce shift is small when individual days routinely differ by three or four.</dd>
+          <dt>p</dt><dd>The chance that two windows this different would arise if nothing had changed (a Welch t-test on the daily totals). Below 0.05 is the usual bar for "probably real". With only 7 days a side, only large shifts clear it.</dd>
+          <dt>Caution</dt><dd>Before/after cannot separate the event from everything else happening at the same time (growth, a cold, a schedule change). It describes what happened; it does not prove the event caused it.</dd>
+        </dl>
+      </details>
+      <div class="legend"><span class="key"><span class="sw" style="background:var(--s1-light);border-radius:50%"></span>before</span><span class="key"><span class="sw" style="background:var(--s1);border-radius:50%"></span>after</span><span class="key"><span class="sw" style="background:var(--ink-2);transform:rotate(45deg);width:9px;height:9px"></span>during (diamond in the event's colour, ranges only)</span></div>
+      <div class="chart" id="dumbbellChart"></div>
+      <div class="tablewrap" id="eventStatsTable"></div>
+    </div>
+  </div>
+
+  <p class="note" id="footNote"></p>
+</div>
+
+<div class="tooltip" id="tooltip" role="status" aria-live="polite"></div>
+
+<div id="gate" class="gate hidden" role="dialog" aria-labelledby="gateTitle">
+  <div class="gate-card">
+    <div class="eyebrow">Private page</div>
+    <h2 id="gateTitle">Feeding dashboard</h2>
+    <p id="gateText">This page is encrypted. Enter the passphrase you were given to view it.</p>
+    <form id="gateForm">
+      <input type="password" id="gatePass" autocomplete="current-password" placeholder="Passphrase" aria-label="Passphrase" required>
+      <button class="primary" type="submit" id="gateBtn">Unlock</button>
+    </form>
+    <p class="gate-err" id="gateErr" aria-live="polite"></p>
+    <p class="note">Decryption happens in your browser. Nothing you type is sent anywhere.</p>
+  </div>
+</div>
+
+<dialog id="settingsDlg">
+  <h2 style="margin:0 0 12px;font-size:16px">Settings</h2>
+  <form method="dialog">
+    <div class="set-grid">
+      <label>Name shown in the title <input type="text" id="setName"></label>
+      <label>Birth date <input type="date" id="setBirth"></label>
+    </div>
+    <div class="eyebrow" style="margin:10px 0 6px">Formula calories</div>
+    <div class="set-grid three">
+      <label>Standard mix, kcal/oz <input type="number" step="0.5" id="setKcalBase"></label>
+      <label>Fortified mix, kcal/oz <input type="number" step="0.5" id="setKcalFort"></label>
+      <label>Fortification start <input type="date" id="setFortStart"></label>
+    </div>
+    <div class="eyebrow" style="margin:10px 0 6px">Targets from the nutrition note</div>
+    <div class="set-grid three">
+      <label>Needs, kcal/kg/day low <input type="number" id="setNeedsKcalLow"></label>
+      <label>Needs, kcal/kg/day high <input type="number" id="setNeedsKcalHigh"></label>
+      <label>Prescribed kcal/kg/day <input type="number" id="setPrescribedKcal"></label>
+      <label>Needs, ml/kg/day (min) <input type="number" id="setNeedsFluid"></label>
+      <label>Prescribed ml/kg/day <input type="number" id="setPrescribedFluid"></label>
+      <label>Source label <input type="text" id="setTargetsNote" placeholder="nutrition note, Oct 14, 2026"></label>
+    </div>
+    <label style="margin-top:10px">Clinic weigh-ins, one per line as <code>YYYY-MM-DD 5.9</code> (kg; add "lb" for pounds) <textarea id="setExtraWeights" rows="3" spellcheck="false"></textarea></label>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:6px"><button value="cancel" class="ghost">Cancel</button><button value="ok" class="primary" id="setSave">Save</button></div>
+  </form>
+</dialog>
+
+<script src="vendor/d3.v7.min.js"></script>
+<script src="vendor/who_wfa_girls.js"></script>
+<script src="data.js"></script>
+<script src="data.enc.js"></script>
+<script>
+(() => {
+'use strict';
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => Array.from(el.querySelectorAll(s));
+const LS = { events: 'feeding-dash-events-v1', csv: 'feeding-dash-csv-v1', settings: 'feeding-dash-settings-v1', theme: 'feeding-dash-theme' };
+for (const k of Object.keys(localStorage)) { const m = /^[a-z]+-feeding-(.+)$/.exec(k); if (m && !k.startsWith('feeding-dash-')) { const nk = 'feeding-dash-' + m[1]; if (localStorage.getItem(nk) == null) localStorage.setItem(nk, localStorage.getItem(k)); localStorage.removeItem(k); } } // keys from an earlier version of this page
+const CATS = [
+  { id: 'medication', label: 'Medication', color: 'var(--s2)' },
+  { id: 'daycare',    label: 'Daycare',    color: 'var(--s3)' },
+  { id: 'illness',    label: 'Illness',    color: 'var(--s4)' },
+  { id: 'other',      label: 'Other',      color: 'var(--s5)' },
+];
+const catColor = id => (CATS.find(c => c.id === id) || CATS[3]).color;
+const catLabel = id => (CATS.find(c => c.id === id) || CATS[3]).label;
+const fmtOz = d3.format('.1f'), fmt1 = d3.format('.1f'), fmt2 = d3.format('.2f'), fmtInt = d3.format(',d'), fmtPct = d3.format('.0%'), fmtSigned = d3.format('+.1f');
+const parseTS = s => { if (!s) return null; const m = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/.exec(s); return m ? new Date(+m[1], +m[2]-1, +m[3], +m[4], +m[5]) : null; };
+const pad2 = n => String(n).padStart(2, '0');
+const dayKey = d => d.getFullYear() + '-' + pad2(d.getMonth()+1) + '-' + pad2(d.getDate());
+const fromKey = k => { const [y,m,d] = k.split('-').map(Number); return new Date(y, m-1, d || 1); };
+const addDays = (k, n) => { const d = fromKey(k); d.setDate(d.getDate()+n); return dayKey(d); };
+const diffDays = (a, b) => Math.round((fromKey(b) - fromKey(a)) / 864e5);
+const fmtDay = k => d3.timeFormat('%b %-d')(fromKey(k));
+const fmtDayY = k => d3.timeFormat('%b %-d, %Y')(fromKey(k));
+const mean = a => a.length ? d3.mean(a) : null;
+const pText = p => p < 0.001 ? 'p < 0.001' : 'p = ' + fmt2(p);
+const tooltip = $('#tooltip');
+const MAX_PLAUSIBLE_OZ = 10; // a single bottle above this is treated as a typo (e.g. 22.5 for 2.5)
+
+// ---------- state ----------
+// Nothing personal lives in this file: name, birth date, formula density, targets and clinic weights come from the
+// (encrypted) data bundle's profile, and can be overridden locally in Settings.
+const SETTINGS_DEFAULTS = { birth: null, name: '', kcalBase: 20, kcalFort: 20, fortStart: null, needsKcalLow: null, needsKcalHigh: null, prescribedKcal: null, needsFluid: null, prescribedFluid: null, targetsNote: '', extraWeights: '' };
+const settings = Object.assign({}, SETTINGS_DEFAULTS);
+let BUNDLED_PROFILE = null;
+function applySettings() { for (const k of Object.keys(settings)) delete settings[k]; Object.assign(settings, SETTINGS_DEFAULTS, BUNDLED_PROFILE || {}, JSON.parse(localStorage.getItem(LS.settings) || '{}')); }
+const childName = () => settings.name || '';
+const dashTitle = () => (childName() ? childName() + ' feeding dashboard' : 'Feeding dashboard');
+const state = { range: 'all', from: null, to: null, gran: 'daily', excludeIll: false, showEvents: true, win: 7, measure: localStorage.getItem('feeding-dash-measure') || 'kcal', units: 'metric' };
+state.units = state.measure === 'ozlb' ? 'imperial' : 'metric';
+// intake per body weight: stored as oz per lb, shown as oz/lb or ml/kg
+const PER_KG = 29.5735 / 0.453592; // 1 oz/lb = 65.2 ml/kg
+const GUIDELINE_OZ_LB = 2.5;        // common formula rule of thumb for young infants (~160 ml/kg/day)
+const ratioVal = v => v == null ? null : (state.units === 'metric' ? v * PER_KG : v);
+const ratioFmt = v => v == null ? '–' : (state.units === 'metric' ? d3.format(',d')(Math.round(v)) : fmt2(v));
+const ratioUnit = () => state.units === 'metric' ? 'ml/kg' : 'oz/lb';
+const ratioDeltaFmt = v => state.units === 'metric' ? d3.format('+,d')(Math.round(v)) : d3.format('+.2f')(v);
+let RAW, DATA, events = [];
+
+// ---------- parsing ----------
+function parseRows(rows) {
+  const feeds = [], sleeps = [], meds = [], growth = [], diapers = [];
+  for (const r of rows) {
+    const t = parseTS(r.Start); if (!t) continue;
+    const type = r.Type;
+    if (type === 'Feed') {
+      let oz = null; const ec = r['End Condition'] || '';
+      let m = /^([\d.]+)\s*oz$/i.exec(ec); if (m) oz = +m[1];
+      m = /^([\d.]+)\s*ml$/i.exec(ec); if (m) oz = +m[1] / 29.5735;
+      let suspect = false; if (oz != null && oz > MAX_PLAUSIBLE_OZ) { suspect = true; }
+      const source = r['Start Location'] || '';
+      let breastMin = 0;
+      for (const v of [r['Start Condition'], ec]) { const mm = /^(\d{2}):(\d{2})[LR]?$/.exec(v || ''); if (mm) breastMin += +mm[1]*60 + +mm[2]; }
+      feeds.push({ t, day: dayKey(t), oz: suspect ? null : oz, rawOz: oz, suspect, source, breastMin, hoursToNext: null });
+    } else if (type === 'Sleep') {
+      const end = parseTS(r.End); if (end && end > t) sleeps.push({ start: t, end });
+    } else if (type === 'Meds') {
+      meds.push({ t, day: dayKey(t), name: (r['Start Location'] || 'Medication').trim(), dose: r['Start Condition'] || '' });
+    } else if (type === 'Growth') {
+      const lbs = parseFloat(r['Start Condition']); const ft = parseFloat(r['Start Location']);
+      growth.push({ t, day: dayKey(t), lbs: isFinite(lbs) ? lbs : null, ft: isFinite(ft) ? ft : null });
+    } else if (type === 'Diaper') {
+      const ec = (r['End Condition'] || '').toLowerCase();
+      diapers.push({ t, day: dayKey(t), pee: /pee/.test(ec), poo: /poo/.test(ec) });
+    }
+  }
+  feeds.sort((a, b) => a.t - b.t); sleeps.sort((a, b) => a.start - b.start); growth.sort((a, b) => a.t - b.t); meds.sort((a, b) => a.t - b.t);
+  for (let i = 0; i < feeds.length - 1; i++) feeds[i].hoursToNext = (feeds[i+1].t - feeds[i].t) / 36e5;
+  return { feeds, sleeps, meds, growth, diapers, rows };
+}
+
+function buildDays(D) {
+  const allTimes = [...D.feeds.map(f => f.t), ...D.sleeps.map(s => s.start), ...D.meds.map(m => m.t), ...D.growth.map(g => g.t), ...D.diapers.map(x => x.t)];
+  const minT = d3.min(allTimes), maxT = d3.max(allTimes);
+  const first = dayKey(minT), last = dayKey(maxT);
+  const days = new Map();
+  for (let k = first; k <= last; k = addDays(k, 1)) days.set(k, { day: k, oz: 0, feeds: 0, ozFeeds: 0, maxFeed: 0, breastFeeds: 0, breastMin: 0, sleepMin: 0, stretchH: null, diapers: 0, poos: 0, weightLbs: null, partial: false });
+  for (const f of D.feeds) { const d = days.get(f.day); if (!d) continue; d.feeds++; if (f.oz != null) { d.oz += f.oz; d.ozFeeds++; d.maxFeed = Math.max(d.maxFeed, f.oz); } if (f.source === 'Breast') { d.breastFeeds++; d.breastMin += f.breastMin; } }
+  // longest gap between consecutive feeds -> credited to the day holding the gap's midpoint
+  for (let i = 1; i < D.feeds.length; i++) {
+    const a = D.feeds[i-1].t, b = D.feeds[i].t; const h = (b - a) / 36e5; if (h <= 0 || h > 16) continue;
+    const mid = new Date((+a + +b) / 2); const d = days.get(dayKey(mid)); if (d && (d.stretchH == null || h > d.stretchH)) d.stretchH = h;
+  }
+  // sleep split at midnight
+  for (const s of D.sleeps) {
+    let cur = new Date(s.start);
+    while (cur < s.end) { const next = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() + 1); const seg = next < s.end ? next : s.end; const d = days.get(dayKey(cur)); if (d) d.sleepMin += (seg - cur) / 6e4; cur = seg; }
+  }
+  for (const x of D.diapers) { const d = days.get(x.day); if (d) { d.diapers++; if (x.poo) d.poos++; } }
+  for (const d of days.values()) { if (d.feeds === 0) { d.partial = true; } } // a day with nothing logged at all is a gap, not a fast
+  // sleep and diapers were not logged every day: a day with no entries of that type is "not logged", not zero
+  const sleepDays = new Set(D.sleeps.map(s => dayKey(s.start))), diaperDays = new Set(D.diapers.map(x => x.day));
+  for (const d of days.values()) { if (!sleepDays.has(d.day)) d.sleepMin = null; if (!diaperDays.has(d.day)) { d.diapers = null; d.poos = null; } }
+  // weight: linear interpolation between weigh-ins, carried flat at the ends
+  const g = D.growth.filter(x => x.lbs != null).map(x => ({ day: x.day, lbs: x.lbs })).concat(extraWeighIns()).sort((p, q) => p.day < q.day ? -1 : 1);
+  const gKeys = g.map(x => fromKey(x.day).getTime()), gVals = g.map(x => x.lbs);
+  if (g.length) for (const d of days.values()) {
+    const t = fromKey(d.day).getTime();
+    if (t <= gKeys[0]) d.weightLbs = gVals[0]; else if (t >= gKeys[gKeys.length-1]) d.weightLbs = gVals[gVals.length-1];
+    else { const i = d3.bisectRight(gKeys, t); const span = gKeys[i] - gKeys[i-1]; const f = span ? (t - gKeys[i-1]) / span : 0; d.weightLbs = gVals[i-1] + f * (gVals[i] - gVals[i-1]); }
+  }
+  // the last day in an export is almost always partial
+  const lastDay = days.get(last); if (lastDay) { const lastT = d3.max(D.feeds.filter(f => f.day === last), f => f.t); if (!lastT || lastT.getHours() < 22) lastDay.partial = true; }
+  // analysis starts the first day she was fully on measured (bottle) feeds
+  let analysisStart = first;
+  for (const d of days.values()) { if (d.ozFeeds >= 4 && d.breastFeeds === 0) { analysisStart = d.day; break; } }
+  return { days, first, last, analysisStart };
+}
+
+// ---------- derived medication spans (seed events) ----------
+function medSpans(D) {
+  const byName = d3.group(D.meds, m => m.name); const spans = [];
+  for (const [name, list] of byName) {
+    const ds = Array.from(new Set(list.map(m => m.day))).sort(); if (!ds.length) continue;
+    let start = ds[0], prev = ds[0];
+    for (let i = 1; i <= ds.length; i++) { const k = ds[i]; if (k == null || diffDays(prev, k) > 7) { spans.push({ name, start, end: prev, n: ds.filter(x => x >= start && x <= prev).length }); start = k; } prev = k; }
+  }
+  return spans;
+}
+
+// ---------- events ----------
+function loadEvents() {
+  const stored = localStorage.getItem(LS.events);
+  if (stored) { try { events = JSON.parse(stored); return; } catch (e) { events = []; } }
+  // published copy: use the events bundled with the data (not saved locally, so updates keep flowing through)
+  if (Array.isArray(BUNDLED_EVENTS)) { events = BUNDLED_EVENTS.map(e => Object.assign({}, e)); return; }
+  // first run: seed from the medication log so the dashboard is useful immediately
+  events = medSpans(DATA).map(s => ({ id: crypto.randomUUID(), name: s.name + ' (from meds log)', category: 'medication', start: s.start, end: s.end === s.start ? null : s.end, notes: 'Auto-detected from ' + s.n + ' logged dose day' + (s.n > 1 ? 's' : '') + '. Edit or delete as needed.' }));
+  saveEvents();
+}
+const saveEvents = () => localStorage.setItem(LS.events, JSON.stringify(events));
+function seedKnownEvents() {
+  // one-time additions; deleting them afterwards sticks
+  if (Array.isArray(BUNDLED_EVENTS) && !localStorage.getItem(LS.events)) return; // the published list is authoritative
+  const seeds = []; // personal milestones live in events.json (bundled), not in this file
+  let changed = false; for (const s of seeds) { if (localStorage.getItem(s.flag)) continue; if (!events.some(e => e.id === s.ev.id)) events.push(s.ev); localStorage.setItem(s.flag, '1'); changed = true; }
+  if (changed) saveEvents();
+}
+const evEnd = e => e.end || e.start;
+function illnessDays() { const s = new Set(); for (const e of events) if (e.category === 'illness') for (let k = e.start; k <= evEnd(e); k = addDays(k, 1)) s.add(k); return s; }
+
+// ---------- filtering & aggregation ----------
+function currentRange() {
+  const last = DATA.last;
+  if (state.range === 'all') return [DATA.analysisStart, last];
+  if (state.range === 'custom') { let a = state.from || DATA.first, b = state.to || last; if (a > b) [a, b] = [b, a]; return [a, b]; }
+  return [addDays(last, -(+state.range) + 1), last];
+}
+function filteredDays() {
+  const [a, b] = currentRange(); const ill = state.excludeIll ? illnessDays() : new Set(); const out = [];
+  for (let k = a; k <= b; k = addDays(k, 1)) { const d = DATA.days.get(k); if (!d) continue; out.push(Object.assign({}, d, { excluded: ill.has(k) })); }
+  return out;
+}
+const usable = d => !d.partial && !d.excluded;
+function periodKey(k, gran) { if (gran === 'daily') return k; if (gran === 'monthly') return k.slice(0, 7); const d = fromKey(k); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return dayKey(d); }
+function periodLabel(key, gran) { if (gran === 'daily') return fmtDay(key); if (gran === 'monthly') return d3.timeFormat('%b %Y')(fromKey(key)); return 'Week of ' + fmtDay(key); }
+function aggregate(days, gran) {
+  const groups = d3.group(days, d => periodKey(d.day, gran)); const out = [];
+  for (const [key, list] of groups) {
+    const ok = list.filter(usable); const n = ok.length; const sumOz = d3.sum(ok, d => d.oz), sumOzFeeds = d3.sum(ok, d => d.ozFeeds);
+    out.push({ key, label: periodLabel(key, gran), start: list[0].day, end: list[list.length-1].day, nDays: list.length, n,
+      oz: n ? sumOz / n : null, totalOz: sumOz, feeds: n ? d3.sum(ok, d => d.feeds) / n : null,
+      ozPerFeed: sumOzFeeds ? sumOz / sumOzFeeds : null,
+      maxFeed: n ? d3.max(ok, d => d.maxFeed) : null, stretchH: mean(ok.map(d => d.stretchH).filter(x => x != null)), sleepH: mean(ok.filter(d => d.sleepMin != null).map(d => d.sleepMin / 60)),
+      ozPerLb: mean(ok.filter(d => d.weightLbs).map(d => d.oz / d.weightLbs)), poos: mean(ok.filter(d => d.poos != null).map(d => d.poos)),
+      partial: list.some(d => d.partial), excluded: list.every(d => d.excluded) });
+  }
+  return out.sort((a, b) => a.key < b.key ? -1 : 1);
+}
+// trailing 7-day mean of a per-day value (daily granularity only)
+function rolling(days, valueOf, w = 7) {
+  const out = [];
+  for (let i = 0; i < days.length; i++) { const win = days.slice(Math.max(0, i - w + 1), i + 1).filter(usable); const vals = win.map(valueOf).filter(v => v != null && isFinite(v)); out.push(vals.length >= Math.min(4, w) ? mean(vals) : null); }
+  return out;
+}
+function rollingRatio(days, numOf, denOf, w = 7) {
+  const out = [];
+  for (let i = 0; i < days.length; i++) { const win = days.slice(Math.max(0, i - w + 1), i + 1).filter(usable); const den = d3.sum(win, denOf); out.push(win.length >= Math.min(4, w) && den ? d3.sum(win, numOf) / den : null); }
+  return out;
+}
+// ---------- lead/lag statistics ----------
+// Trend for each day = mean of its neighbours within ±3 days (the day itself excluded); residual = oz − trend.
+function detrend(ok) {
+  const idx = new Map(ok.map((d, i) => [d.day, i])); const res = [];
+  for (let i = 0; i < ok.length; i++) {
+    const win = []; for (let j = -3; j <= 3; j++) { if (j === 0) continue; const ii = idx.get(addDays(ok[i].day, j)); if (ii != null) win.push(ok[ii].oz); }
+    if (win.length >= 4) { const tr = mean(win); res.push({ day: ok[i].day, oz: ok[i].oz, trend: tr, res: ok[i].oz - tr }); }
+  }
+  return res;
+}
+function lagStats(res, maxLag) {
+  const byDay = new Map(res.map(r => [r.day, r])); const lags = [];
+  for (let k = 1; k <= maxLag; k++) { const xs = [], ys = []; for (const r of res) { const nxt = byDay.get(addDays(r.day, k)); if (nxt) { xs.push(r.res); ys.push(nxt.res); } } lags.push(Object.assign({ k }, pearson(xs, ys))); }
+  const pairs = []; for (const r of res) { const nxt = byDay.get(addDays(r.day, 1)); if (nxt) pairs.push({ day: r.day, x: r.res, y: nxt.res, ozToday: r.oz, ozNext: nxt.oz, trend: r.trend }); }
+  const sorted = pairs.map(p => p.x).sort(d3.ascending); const lo = d3.quantile(sorted, 1/3), hi = d3.quantile(sorted, 2/3);
+  const cond = (sel, label) => { const sub = pairs.filter(sel); const ys = sub.map(p => p.y); const n = ys.length; return { label, n, mu: mean(ys), ci: n > 1 ? 1.96 * d3.deviation(ys) / Math.sqrt(n) : null, above: n ? ys.filter(v => v > 0).length / n : null, todayMean: mean(sub.map(p => p.x)) }; };
+  return { lags, pairs, low: cond(p => p.x <= lo, 'light day'), mid: cond(p => p.x > lo && p.x < hi, 'typical day'), high: cond(p => p.x >= hi, 'heavy day') };
+}
+function lagMeaning(l) {
+  if (!l.nul || l.r == null) return 'Not enough days in range to judge this lag.';
+  const later = l.k === 1 ? 'the next day' : l.k + ' days later'; const sig = l.pPerm < 0.05;
+  const base = 'The correlation runs from −1 to +1. Negative means a day below trend tends to be followed ' + later + ' by one above it (catch-up); positive means light days are followed by more light days (runs). The gray band is what the same calculation gives when the days are reshuffled, so only the part of the bar outside the band is real. ';
+  if (!sig) return base + 'Here the bar sits inside the band: what she eats ' + later + ' is no more tied to today than chance would make it. No sign of catch-up eating, and no sign of light days clustering, at this lag.';
+  if (l.excess < 0) return base + 'Here the bar escapes the band on the negative side: she tends to make up for a light day ' + later + '. That is the hunger-drive pattern.';
+  return base + 'Here the bar escapes the band on the positive side: light days come in runs. That usually reflects illness, teething or a growth plateau rather than appetite; check whether an illness event covers those days.';
+}
+// What the same pipeline reports when the days are shuffled (no real day-to-day link, same trend, same spread).
+// Detrending by itself produces negative lag correlations, so this is the honest baseline to compare against.
+function permNull(res, maxLag, nSim = 400) {
+  const trend = res.map(r => r.trend), e = res.map(r => r.res), dayList = res.map(r => r.day);
+  const simLags = Array.from({ length: maxLag }, () => []), simLow = [], simHigh = [];
+  const rng = d3.randomLcg(42); const shuffle = d3.shuffler(rng);
+  for (let s = 0; s < nSim; s++) {
+    const es = shuffle(e.slice()); const ok = dayList.map((d, i) => ({ day: d, oz: trend[i] + es[i] }));
+    const st = lagStats(detrend(ok), maxLag);
+    st.lags.forEach((l, i) => { if (l.r != null) simLags[i].push(l.r); }); if (st.low.mu != null) simLow.push(st.low.mu); if (st.high.mu != null) simHigh.push(st.high.mu);
+  }
+  const summarise = arr => { if (arr.length < 20) return null; const s = arr.slice().sort(d3.ascending); const mu = mean(s); return { mean: mu, lo: d3.quantile(s, 0.025), hi: d3.quantile(s, 0.975), p: obs => (s.filter(v => Math.abs(v - mu) >= Math.abs(obs - mu)).length + 1) / (s.length + 1) }; };
+  return { lags: simLags.map(summarise), low: summarise(simLow), high: summarise(simHigh) };
+}
+function pearson(xs, ys) {
+  const n = xs.length; if (n < 3) return { r: null, n, p: null, slope: null, intercept: null };
+  const mx = mean(xs), my = mean(ys); let sxy = 0, sxx = 0, syy = 0;
+  for (let i = 0; i < n; i++) { sxy += (xs[i]-mx)*(ys[i]-my); sxx += (xs[i]-mx)**2; syy += (ys[i]-my)**2; }
+  const r = sxx && syy ? sxy / Math.sqrt(sxx*syy) : 0; const z = Math.atanh(Math.min(0.9999, Math.max(-0.9999, r))) * Math.sqrt(Math.max(1, n - 3)); const p = 2 * (1 - normCdf(Math.abs(z)));
+  const slope = sxx ? sxy / sxx : 0; return { r, n, p, slope, intercept: my - slope * mx };
+}
+function normCdf(x) { const t = 1 / (1 + 0.2316419 * Math.abs(x)); const d = 0.3989423 * Math.exp(-x*x/2); const p = d * t * (0.3193815 + t*(-0.3565638 + t*(1.781478 + t*(-1.821256 + t*1.330274)))); return x > 0 ? 1 - p : p; }
+
+// ---------- chart helpers ----------
+function svgIn(sel, w, h) { const el = typeof sel === 'string' ? $(sel) : sel; el.innerHTML = ''; return d3.select(el).append('svg').attr('viewBox', '0 0 ' + w + ' ' + h).attr('width', w).attr('height', h); }
+function widthOf(sel) { const el = typeof sel === 'string' ? $(sel) : sel; return Math.max(320, el.clientWidth || (el.parentElement && el.parentElement.clientWidth) || 800); }
+function showTip(ev, title, rows) {
+  tooltip.textContent = ''; const t = document.createElement('div'); t.className = 'tt-title'; t.textContent = title; tooltip.appendChild(t);
+  for (const row of rows) {
+    const [k, v, color] = row;
+    if (row.length === 1 || v === undefined) { const p = document.createElement('div'); p.className = 'para'; p.textContent = k; tooltip.appendChild(p); continue; }
+    const r = document.createElement('div'); r.className = 'row'; const kk = document.createElement('span'); kk.className = 'k'; if (color) { const i = document.createElement('i'); i.style.background = color; kk.appendChild(i); } kk.appendChild(document.createTextNode(k)); const b = document.createElement('b'); b.textContent = v; r.appendChild(kk); r.appendChild(b); tooltip.appendChild(r);
+  }
+  tooltip.style.display = 'block'; moveTip(ev);
+}
+function moveTip(ev) { const x = ev.clientX, y = ev.clientY; const r = tooltip.getBoundingClientRect(); tooltip.style.left = Math.max(4, Math.min(window.innerWidth - r.width - 8, x + 14)) + 'px'; tooltip.style.top = (y + r.height + 24 > window.innerHeight ? y - r.height - 10 : y + 14) + 'px'; }
+const hideTip = () => { tooltip.style.display = 'none'; };
+function yAxisLeft(g, y, w, ticks = 5, fmt = d => d) {
+  const tv = Array.isArray(ticks) ? ticks : y.ticks(ticks);
+  g.append('g').selectAll('line').data(tv).join('line').attr('class', 'gridline').attr('x1', 0).attr('x2', w).attr('y1', d => y(d)).attr('y2', d => y(d));
+  g.append('g').attr('class', 'axis').call(d3.axisLeft(y).tickValues(tv).tickSize(0).tickPadding(8).tickFormat(fmt)).call(s => s.select('.domain').remove());
+}
+function makeTable(container, cols, rows) {
+  const el = typeof container === 'string' ? $(container) : container; el.textContent = ''; const t = document.createElement('table'); t.className = 'data'; const th = t.createTHead().insertRow(); for (const c of cols) { const h = document.createElement('th'); h.textContent = c.label; th.appendChild(h); }
+  const tb = t.createTBody(); for (const r of rows) { const tr = tb.insertRow(); for (const c of cols) { const td = tr.insertCell(); const v = c.get(r); td.textContent = v == null || (typeof v === 'number' && !isFinite(v)) ? '–' : (c.fmt && typeof v === 'number' ? c.fmt(v) : String(v)); } }
+  el.appendChild(t);
+}
+const roundedBar = (xx, yy, ww, hh, r) => { r = Math.max(0, Math.min(r, ww / 2, hh)); return 'M' + xx + ',' + (yy + hh) + 'V' + (yy + r) + 'a' + r + ',' + r + ' 0 0 1 ' + r + ',-' + r + 'h' + (ww - 2*r) + 'a' + r + ',' + r + ' 0 0 1 ' + r + ',' + r + 'V' + (yy + hh) + 'Z'; };
+// x position of a calendar day inside a band scale of periods
+function xOfDate(dayK, periods, x, gran) {
+  const pk = periodKey(dayK, gran); const p = periods.find(q => q.key === pk);
+  if (!p) { if (dayK < periods[0].start) return x(periods[0].key); if (dayK > periods[periods.length-1].end) return x(periods[periods.length-1].key) + x.bandwidth(); return null; }
+  const span = Math.max(1, diffDays(p.start, p.end) + 1); const f = diffDays(p.start, dayK) / span; return x(p.key) + f * x.bandwidth() + (gran === 'daily' ? 0 : x.step() * x.paddingInner() * f);
+}
+function drawEvents(g, periods, x, gran, h, withLabels = true) {
+  if (!state.showEvents || !periods.length) return; const [a, b] = currentRange(); let row = 0;
+  for (const e of events.slice().sort((p, q) => p.start < q.start ? -1 : 1)) {
+    const s = e.start, en = evEnd(e); if (en < a || s > b) continue;
+    const x0 = xOfDate(s < a ? a : s, periods, x, gran); if (x0 == null) continue;
+    const endDay = en > b ? b : en; let x1 = xOfDate(endDay, periods, x, gran); if (x1 == null) x1 = x0; x1 += gran === 'daily' ? x.bandwidth() : x.bandwidth() / Math.max(1, diffDays(periods[0].start, periods[0].end) + 1);
+    const color = catColor(e.category); const grp = g.append('g').attr('class', 'event').style('pointer-events', 'none');
+    if (e.end) grp.append('rect').attr('x', x0).attr('width', Math.max(2, x1 - x0)).attr('y', 0).attr('height', h).style('fill', color).style('opacity', 0.14);
+    grp.append('line').attr('x1', x0).attr('x2', x0).attr('y1', 0).attr('y2', h).style('stroke', color).style('stroke-width', 1.5);
+    if (withLabels) { const ty = 10 + (row % 3) * 13; row++; const name = e.name.length > 26 ? e.name.slice(0, 24) + '…' : e.name; grp.append('rect').attr('x', x0 + 1).attr('y', ty - 10).attr('width', name.length * 5.8 + 8).attr('height', 13).attr('rx', 3).style('fill', 'var(--surface)').style('opacity', 0.85); grp.append('text').attr('class', 'ann-label').attr('x', x0 + 5).attr('y', ty).text(name); }
+  }
+}
+function sparkline(host, vals, w = 150, h = 28) {
+  const clean = vals.map(v => v == null || !isFinite(v) ? null : v); if (clean.filter(v => v != null).length < 3) return;
+  const x = d3.scaleLinear().domain([0, clean.length - 1]).range([1, w - 1]); const y = d3.scaleLinear().domain(d3.extent(clean.filter(v => v != null))).nice().range([h - 2, 2]);
+  const svg = d3.select(host).append('svg').attr('width', w).attr('height', h).attr('viewBox', '0 0 ' + w + ' ' + h);
+  const line = d3.line().defined(d => d.v != null).x(d => x(d.i)).y(d => y(d.v)).curve(d3.curveMonotoneX);
+  const pts = clean.map((v, i) => ({ v, i })); const n = pts.length;
+  svg.append('path').attr('d', line(pts.slice(0, Math.max(1, n - 6)))).attr('fill', 'none').style('stroke', 'var(--s1-light)').attr('stroke-width', 2).attr('stroke-linecap', 'round');
+  svg.append('path').attr('d', line(pts.slice(Math.max(0, n - 7)))).attr('fill', 'none').style('stroke', 'var(--s1)').attr('stroke-width', 2).attr('stroke-linecap', 'round');
+}
+
+// ---------- KPIs ----------
+function renderKpis(days) {
+  const ok = days.filter(usable); const last7 = ok.slice(-7), prev7 = ok.slice(-14, -7); const recent = ok.slice(-28);
+  const el = $('#kpis'); el.textContent = '';
+  const tile = (label, value, unit, delta, spark, deltaFmt = fmtSigned) => {
+    const t = document.createElement('div'); t.className = 'tile'; const l = document.createElement('div'); l.className = 'label'; l.textContent = label; t.appendChild(l);
+    const v = document.createElement('div'); v.className = 'value'; v.textContent = value; if (unit) { const s = document.createElement('small'); s.textContent = unit; v.appendChild(s); } t.appendChild(v);
+    if (delta != null && isFinite(delta)) { const d = document.createElement('div'); d.className = 'delta'; const sp = document.createElement('span'); sp.className = delta >= 0 ? 'up' : 'down'; sp.textContent = (delta >= 0 ? '▲ ' : '▼ ') + deltaFmt(delta); d.appendChild(sp); d.appendChild(document.createTextNode(' vs prior 7 full days')); t.appendChild(d); }
+    if (spark) sparkline(t, spark);
+    el.appendChild(t);
+  };
+  const ratio = (list, num, den) => { const d = d3.sum(list, den); return d ? d3.sum(list, num) / d : null; };
+  const a = mean(last7.map(d => d.oz)), b = mean(prev7.map(d => d.oz));
+  tile('Ounces per day, last 7 full days', a != null ? fmtOz(a) : '–', 'oz', a != null && b != null ? a - b : null, recent.map(d => d.oz));
+  const ka = mean(last7.map(dayKcal)), kb = mean(prev7.map(dayKcal));
+  tile('Calories from formula per day', ka != null ? fmtInt(Math.round(ka)) : '–', 'kcal', ka != null && kb != null ? ka - kb : null, recent.map(dayKcal), v => d3.format('+,d')(Math.round(v)));
+  const fa = mean(last7.map(d => d.feeds)), fb = mean(prev7.map(d => d.feeds));
+  tile('Feeds per day', fa != null ? fmt1(fa) : '–', '', fa != null && fb != null ? fa - fb : null, recent.map(d => d.feeds));
+  const pa = ratio(last7, d => d.oz, d => d.ozFeeds), pb = ratio(prev7, d => d.oz, d => d.ozFeeds);
+  tile('Ounces per feed', pa != null ? fmt2(pa) : '–', 'oz', pa != null && pb != null ? pa - pb : null, recent.map(d => d.ozFeeds ? d.oz / d.ozFeeds : null), d3.format('+.2f'));
+  const sa = mean(last7.map(d => d.stretchH).filter(x => x != null)), sb = mean(prev7.map(d => d.stretchH).filter(x => x != null));
+  tile('Longest stretch between feeds', sa != null ? fmt1(sa) : '–', 'h', sa != null && sb != null ? sa - sb : null, recent.map(d => d.stretchH));
+  const sl = mean(last7.filter(d => d.sleepMin != null).map(d => d.sleepMin / 60)), slb = mean(prev7.filter(d => d.sleepMin != null).map(d => d.sleepMin / 60));
+  if (sl != null) tile('Logged sleep per day', fmt1(sl), 'h', slb != null ? sl - slb : null, recent.map(d => d.sleepMin == null ? null : d.sleepMin / 60));
+  const gw = DATA.growth.filter(x => x.lbs != null).slice(-1)[0];
+  if (gw) tile('Last logged weight (' + fmtDay(gw.day) + ')', state.units === 'metric' ? fmt2(gw.lbs * 0.453592) : fmt2(gw.lbs), state.units === 'metric' ? 'kg' : 'lb', null, null);
+}
+
+// ---------- Intake chart ----------
+function renderIntake(days) {
+  const gran = state.gran; const periods = aggregate(days, gran); const W = widthOf('#intakeChart'); const m = { t: 48, r: 60, b: 34, l: 44 }; const H = 330; const w = W - m.l - m.r, h = H - m.t - m.b;
+  const svg = svgIn('#intakeChart', W, H); const g = svg.append('g').attr('transform', 'translate(' + m.l + ',' + m.t + ')');
+  const x = d3.scaleBand().domain(periods.map(p => p.key)).range([0, w]).paddingInner(gran === 'daily' ? 0.25 : 0.35).paddingOuter(0.1);
+  const y = d3.scaleLinear().domain([0, (d3.max(periods, p => p.oz) || 10) * 1.08]).nice().range([h, 0]);
+  yAxisLeft(g, y, w, 5, d => d + ' oz');
+  let ticks;
+  if (gran === 'daily') ticks = periods.length > 45 ? periods.filter(p => fromKey(p.key).getDate() === 1).map(p => p.key) : periods.filter((p, i) => i % Math.ceil(periods.length / 10) === 0).map(p => p.key);
+  else if (gran === 'weekly') ticks = periods.filter((p, i) => i % Math.ceil(periods.length / 10) === 0).map(p => p.key);
+  else ticks = periods.map(p => p.key);
+  const tickFmt = k => gran === 'daily' ? d3.timeFormat(periods.length > 45 ? '%b' : '%b %-d')(fromKey(k)) : gran === 'weekly' ? fmtDay(k) : periodLabel(k, gran);
+  g.append('g').attr('class', 'axis').attr('transform', 'translate(0,' + h + ')').call(d3.axisBottom(x).tickValues(ticks).tickSize(0).tickPadding(8).tickFormat(tickFmt)).call(s => s.select('.domain').remove());
+  g.append('line').attr('x1', 0).attr('x2', w).attr('y1', h).attr('y2', h).style('stroke', 'var(--axis)');
+  drawEvents(g, periods, x, gran, h);
+  const bw = Math.min(24, x.bandwidth()); const off = (x.bandwidth() - bw) / 2;
+  g.append('g').selectAll('path').data(periods.filter(p => p.oz != null)).join('path').attr('class', 'bar').attr('d', p => roundedBar(x(p.key) + off, y(p.oz), bw, h - y(p.oz), 4)).style('fill', gran === 'daily' ? 'var(--s1-light)' : 'var(--s1)').style('opacity', p => p.partial ? 0.45 : 1);
+  const roll = gran === 'daily' ? rolling(days, d => d.oz) : null;
+  if (gran === 'daily') {
+    const pts = days.map((d, i) => ({ k: d.day, v: roll[i] })); const line = d3.line().defined(d => d.v != null).x(d => x(d.k) + x.bandwidth() / 2).y(d => y(d.v)).curve(d3.curveMonotoneX);
+    g.append('path').attr('d', line(pts)).attr('fill', 'none').style('stroke', 'var(--s1)').attr('stroke-width', 2).attr('stroke-linejoin', 'round').attr('stroke-linecap', 'round').style('pointer-events', 'none');
+    const lastPt = pts.filter(d => d.v != null).slice(-1)[0]; if (lastPt) g.append('text').attr('x', x(lastPt.k) + x.bandwidth() / 2 + 8).attr('y', y(lastPt.v) + 4).attr('class', 'ann-label').style('fill', 'var(--ink)').style('font-weight', 600).text(fmtOz(lastPt.v) + ' oz avg');
+  } else { const lastP = periods.filter(p => p.oz != null && !p.partial).slice(-1)[0]; if (lastP) g.append('text').attr('x', x(lastP.key) + x.bandwidth() / 2).attr('y', y(lastP.oz) - 6).attr('text-anchor', 'middle').attr('class', 'ann-label').style('fill', 'var(--ink)').style('font-weight', 600).text(fmtOz(lastP.oz) + ' oz'); }
+  // crosshair + tooltip
+  const cross = g.append('line').attr('y1', 0).attr('y2', h).style('stroke', 'var(--ink-2)').attr('stroke-width', 1).style('opacity', 0).style('pointer-events', 'none');
+  svg.append('rect').attr('x', m.l).attr('y', m.t).attr('width', w).attr('height', h).attr('fill', 'transparent').on('pointermove', ev => {
+    const [px] = d3.pointer(ev, g.node()); const i = Math.min(periods.length - 1, Math.max(0, Math.floor((px - x.paddingOuter() * x.step()) / x.step()))); const p = periods[i]; if (!p) return;
+    cross.attr('x1', x(p.key) + x.bandwidth() / 2).attr('x2', x(p.key) + x.bandwidth() / 2).style('opacity', 1);
+    const rows = [[gran === 'daily' ? 'Ounces' : 'Ounces per day', p.oz != null ? fmtOz(p.oz) + ' oz' : 'excluded', gran === 'daily' ? 'var(--s1-light)' : 'var(--s1)']];
+    if (gran === 'daily') { const di = days.findIndex(d => d.day === p.key); if (roll[di] != null) rows.push(['7-day average', fmtOz(roll[di]) + ' oz', 'var(--s1)']); }
+    else rows.push(['Total in period', fmtOz(p.totalOz) + ' oz'], ['Full days', String(p.n)]);
+    rows.push(['Feeds per day', p.feeds != null ? fmt1(p.feeds) : '–'], ['Ounces per feed', p.ozPerFeed != null ? fmt2(p.ozPerFeed) : '–']);
+    if (p.partial) rows.push(['Note', gran === 'daily' ? 'partial day' : 'includes a partial day']);
+    for (const e of events.filter(e => e.start <= p.end && evEnd(e) >= p.start)) rows.push(['Event', e.name.length > 30 ? e.name.slice(0, 28) + '…' : e.name, catColor(e.category)]);
+    showTip(ev, gran === 'daily' ? fmtDayY(p.key) : p.label + ' (' + fmtDay(p.start) + ' – ' + fmtDay(p.end) + ')', rows);
+  }).on('pointerleave', () => { cross.style('opacity', 0); hideTip(); });
+  // legend + description
+  const lg = $('#intakeLegend'); lg.textContent = '';
+  const key = (type, color, label) => { const s = document.createElement('span'); s.className = 'key'; const i = document.createElement('span'); i.className = type; i.style.background = color; s.appendChild(i); s.appendChild(document.createTextNode(label)); lg.appendChild(s); };
+  if (gran === 'daily') { key('sw', 'var(--s1-light)', 'ounces per day'); key('ln', 'var(--s1)', 'trailing 7-day average'); } else key('sw', 'var(--s1)', 'average ounces per day in the period');
+  if (state.showEvents) for (const c of CATS) if (events.some(e => e.category === c.id)) key('sw', c.color, c.label + ' event');
+  const [a, b] = currentRange();
+  $('#intakeDesc').textContent = 'Bottle ounces per day, ' + fmtDayY(a) + ' to ' + fmtDayY(b) + '. ' + (gran === 'daily' ? 'Bars are days; the line is the trailing 7-day average.' : 'Each bar is the average ounces per day within the ' + (gran === 'weekly' ? 'week (Monday to Sunday)' : 'month') + ', so partial periods compare fairly.') + ' Faded bars include a partial day.';
+  makeTable('#intakeTable', [{ label: 'Period', get: p => p.label }, { label: 'Full days', get: p => p.n }, { label: 'Oz/day', get: p => p.oz, fmt: fmtOz }, { label: 'Total oz', get: p => p.totalOz, fmt: fmtOz }, { label: 'Feeds/day', get: p => p.feeds, fmt: fmt1 }, { label: 'Oz/feed', get: p => p.ozPerFeed, fmt: fmt2 }, { label: 'Largest feed', get: p => p.maxFeed, fmt: fmtOz }, { label: 'Longest stretch (h)', get: p => p.stretchH, fmt: fmt1 }, { label: 'Sleep h/day', get: p => p.sleepH, fmt: fmt1 }, { label: ratioUnit(), get: p => p.ozPerLb, fmt: v => ratioFmt(ratioVal(v)) }, { label: 'Note', get: p => p.partial ? 'partial' : (p.excluded ? 'excluded' : '') }], periods);
+  return periods;
+}
+
+// ---------- small multiples ----------
+function renderSmallMultiples(days, periods) {
+  const gran = state.gran;
+  const specs = [
+    { f: 'feeds', title: 'Feeds per day', unit: '', fmt: fmt1, roll: () => rolling(days, d => d.feeds) },
+    { f: 'ozPerFeed', title: 'Ounces per feed', unit: ' oz', fmt: fmt2, roll: () => rollingRatio(days, d => d.oz, d => d.ozFeeds) },
+    { f: 'maxFeed', title: 'Largest single feed', unit: ' oz', fmt: fmtOz, roll: () => rolling(days, d => d.maxFeed) },
+    { f: 'stretchH', title: 'Longest stretch between feeds', unit: ' h', fmt: fmt1, roll: () => rolling(days, d => d.stretchH) },
+    { f: 'sleepH', title: 'Logged sleep per day', unit: ' h', fmt: fmt1, roll: () => rolling(days, d => d.sleepMin == null ? null : d.sleepMin / 60) },
+    { f: 'poos', title: 'Poops per day', unit: '', fmt: fmt1, roll: () => rolling(days, d => d.poos) },
+  ];
+  const host = $('#smCharts'); host.textContent = '';
+  const dense = gran === 'daily' && periods.length > 45;
+  // first pass: build every card so the grid settles before any chart measures its width
+  for (const s of specs) {
+    const card = document.createElement('div'); card.className = 'sm'; const h3 = document.createElement('h3'); h3.textContent = s.title; card.appendChild(h3);
+    const cur = document.createElement('div'); cur.className = 'cur'; const lastP = periods.filter(p => p[s.f] != null && !p.partial).slice(-1)[0]; cur.textContent = lastP ? 'latest full ' + (gran === 'daily' ? 'day' : gran === 'weekly' ? 'week' : 'month') + ': ' + s.fmt(lastP[s.f]) + s.unit : 'not logged in this range'; card.appendChild(cur);
+    const ch = document.createElement('div'); ch.className = 'chart'; card.appendChild(ch); host.appendChild(card); s.el = ch;
+  }
+  for (const s of specs) {
+    const ch = s.el;
+    const W = Math.max(230, ch.clientWidth || 280), H = 130, m = { t: 8, r: 10, b: 20, l: 36 }, w = W - m.l - m.r, h = H - m.t - m.b;
+    const svg = svgIn(ch, W, H); const g = svg.append('g').attr('transform', 'translate(' + m.l + ',' + m.t + ')');
+    const x = d3.scaleBand().domain(periods.map(p => p.key)).range([0, w]); const vals = periods.filter(p => p[s.f] != null && !p.partial);
+    const rollVals = dense ? s.roll() : null;
+    const y = d3.scaleLinear().domain([0, Math.max(d3.max(vals, p => p[s.f]) || 1, s.ref || 0) * 1.1]).nice().range([h, 0]);
+    yAxisLeft(g, y, w, s.ticks ? s.ticks(y) : 3, s.axisFmt || (d => d)); drawEvents(g, periods, x, gran, h, false);
+    if (s.ref != null) { g.append('line').attr('x1', 0).attr('x2', w).attr('y1', y(s.ref)).attr('y2', y(s.ref)).style('stroke', 'var(--muted)').attr('stroke-width', 1); g.append('text').attr('x', w).attr('y', y(s.ref) - 4).attr('text-anchor', 'end').attr('class', 'ann-label').text(s.refLabel || ''); }
+    const line = d3.line().defined(p => p.v != null && isFinite(p.v)).x(p => x(p.k) + x.bandwidth() / 2).y(p => y(p.v)).curve(d3.curveMonotoneX);
+    const rawPts = periods.map(p => ({ k: p.key, v: p.partial ? null : p[s.f] }));
+    if (dense) { g.append('path').attr('d', line(rawPts)).attr('fill', 'none').style('stroke', 'var(--s1-light)').attr('stroke-width', 1.25); const rp = days.map((d, i) => ({ k: d.day, v: rollVals[i] })); g.append('path').attr('d', line(rp)).attr('fill', 'none').style('stroke', 'var(--s1)').attr('stroke-width', 2).attr('stroke-linejoin', 'round'); }
+    else { g.append('path').attr('d', line(rawPts)).attr('fill', 'none').style('stroke', 'var(--s1)').attr('stroke-width', 2).attr('stroke-linejoin', 'round'); g.append('g').selectAll('circle').data(vals).join('circle').attr('cx', p => x(p.key) + x.bandwidth() / 2).attr('cy', p => y(p[s.f])).attr('r', 4).style('fill', 'var(--s1)').style('stroke', 'var(--surface)').attr('stroke-width', 2); }
+    const cross = g.append('line').attr('y1', 0).attr('y2', h).style('stroke', 'var(--ink-2)').style('opacity', 0).style('pointer-events', 'none');
+    svg.append('rect').attr('x', m.l).attr('y', m.t).attr('width', w).attr('height', h).attr('fill', 'transparent').on('pointermove', ev => {
+      const [px] = d3.pointer(ev, g.node()); const i = Math.min(periods.length - 1, Math.max(0, Math.floor(px / x.step()))); const p = periods[i]; if (!p) return;
+      cross.attr('x1', x(p.key) + x.bandwidth() / 2).attr('x2', x(p.key) + x.bandwidth() / 2).style('opacity', 1);
+      const rows = [[s.title, p[s.f] != null ? s.fmt(p[s.f]) + s.unit : (p.excluded ? 'excluded' : '–'), dense ? 'var(--s1-light)' : 'var(--s1)']]; if (dense && rollVals[i] != null) rows.push(['7-day average', s.fmt(rollVals[i]) + s.unit, 'var(--s1)']);
+      showTip(ev, gran === 'daily' ? fmtDayY(p.key) : p.label, rows);
+    }).on('pointerleave', () => { cross.style('opacity', 0); hideTip(); });
+  }
+  makeTable('#smTable', [{ label: 'Period', get: p => p.label }, ...specs.map(s => ({ label: s.title, get: p => p[s.f], fmt: s.fmt }))], periods);
+}
+
+// ---------- heatmap ----------
+function renderHeat(days) {
+  const dayset = new Set(days.filter(usable).map(d => d.day));
+  const weeks = Array.from(new Set(days.map(d => periodKey(d.day, 'weekly')))).sort();
+  const daysPerWeek = new Map(weeks.map(wk => [wk, days.filter(d => usable(d) && periodKey(d.day, 'weekly') === wk).length]));
+  const cells = new Map(); for (const wk of weeks) for (let hr = 0; hr < 24; hr++) cells.set(wk + '|' + hr, 0);
+  for (const f of DATA.feeds) { if (f.oz == null || !dayset.has(f.day)) continue; const key = periodKey(f.day, 'weekly') + '|' + f.t.getHours(); cells.set(key, (cells.get(key) || 0) + f.oz); }
+  const data = []; for (const wk of weeks) for (let hr = 0; hr < 24; hr++) { const n = daysPerWeek.get(wk); data.push({ wk, hr, v: n ? cells.get(wk + '|' + hr) / n : null }); }
+  const W = widthOf('#heatChart'), m = { t: 8, r: 10, b: 44, l: 44 }, cellH = 11, H = m.t + 24 * cellH + m.b, w = W - m.l - m.r;
+  const svg = svgIn('#heatChart', W, H); const g = svg.append('g').attr('transform', 'translate(' + m.l + ',' + m.t + ')');
+  const x = d3.scaleBand().domain(weeks).range([0, w]).paddingInner(0.12); const y = d3.scaleBand().domain(d3.range(24)).range([0, 24 * cellH]).paddingInner(0.15);
+  const vmax = d3.max(data, d => d.v) || 1; const ramp = ['--seq-100', '--seq-200', '--seq-300', '--seq-400', '--seq-500', '--seq-600', '--seq-700'];
+  const color = v => v == null ? 'var(--grid)' : v <= 0 ? 'var(--page)' : 'var(' + ramp[Math.min(6, Math.floor(v / vmax * 6.999))] + ')';
+  const hourLabel = hr => hr === 0 ? '12am' : hr < 12 ? hr + 'am' : hr === 12 ? '12pm' : (hr - 12) + 'pm';
+  g.append('g').attr('class', 'axis').call(d3.axisLeft(y).tickValues([0, 6, 12, 18, 23]).tickSize(0).tickPadding(6).tickFormat(hourLabel)).call(s => s.select('.domain').remove());
+  const tickEvery = Math.ceil(weeks.length / 8); g.append('g').attr('class', 'axis').attr('transform', 'translate(0,' + (24 * cellH) + ')').call(d3.axisBottom(x).tickValues(weeks.filter((d, i) => i % tickEvery === 0)).tickSize(0).tickPadding(6).tickFormat(k => fmtDay(k))).call(s => s.select('.domain').remove());
+  g.append('g').selectAll('rect').data(data).join('rect').attr('class', 'cell').attr('x', d => x(d.wk)).attr('y', d => y(d.hr)).attr('width', x.bandwidth()).attr('height', y.bandwidth()).attr('rx', 2).style('fill', d => color(d.v))
+    .on('pointermove', (ev, d) => showTip(ev, 'Week of ' + fmtDay(d.wk) + ', ' + hourLabel(d.hr) + ' hour', [['Ounces per day in this hour', d.v == null ? 'no full days' : fmtOz(d.v)], ['Full days in week', String(daysPerWeek.get(d.wk))]])).on('pointerleave', hideTip);
+  const lg = svg.append('g').attr('transform', 'translate(' + (m.l + 24) + ',' + (H - 12) + ')');
+  ramp.forEach((c, i) => lg.append('rect').attr('x', i * 16).attr('y', 0).attr('width', 14).attr('height', 8).attr('rx', 2).style('fill', 'var(' + c + ')'));
+  lg.append('text').attr('x', -4).attr('y', 7).attr('text-anchor', 'end').attr('class', 'ann-label').text('0'); lg.append('text').attr('x', 7 * 16 + 2).attr('y', 7).attr('class', 'ann-label').text(fmtOz(vmax) + ' oz per day in that hour');
+  makeTable('#heatTable', [{ label: 'Hour', get: r => r.hr }, ...weeks.map(wk => ({ label: fmtDay(wk), get: r => r[wk], fmt: fmtOz }))], d3.range(24).map(hr => { const row = { hr: hourLabel(hr) }; for (const wk of weeks) { const n = daysPerWeek.get(wk); row[wk] = n ? cells.get(wk + '|' + hr) / n : null; } return row; }));
+}
+
+// ---------- bottle size vs time to next feed ----------
+function renderFeedSize(days) {
+  const ok = new Set(days.filter(usable).map(d => d.day));
+  const pts = DATA.feeds.filter(f => f.oz != null && f.oz > 0 && f.hoursToNext != null && f.hoursToNext > 0.25 && f.hoursToNext <= 12 && ok.has(f.day));
+  const W = widthOf('#feedSizeChart'), H = 280, m = { t: 10, r: 16, b: 36, l: 44 }, w = W - m.l - m.r, h = H - m.t - m.b;
+  const svg = svgIn('#feedSizeChart', W, H); const g = svg.append('g').attr('transform', 'translate(' + m.l + ',' + m.t + ')');
+  if (pts.length < 5) { g.append('text').attr('x', w / 2).attr('y', h / 2).attr('text-anchor', 'middle').attr('class', 'ann-label').text('Not enough feeds in range'); $('#feedSizeStats').textContent = ''; makeTable('#feedSizeTable', [], []); return; }
+  const x = d3.scaleLinear().domain([0, Math.ceil(d3.max(pts, p => p.oz)) + 0.5]).range([0, w]); const y = d3.scaleLinear().domain([0, Math.min(12, Math.ceil(d3.max(pts, p => p.hoursToNext)))]).nice().range([h, 0]);
+  yAxisLeft(g, y, w, 5, d => d + ' h'); g.append('g').attr('class', 'axis').attr('transform', 'translate(0,' + h + ')').call(d3.axisBottom(x).ticks(8).tickSize(0).tickPadding(8).tickFormat(d => d + ' oz')).call(s => s.select('.domain').remove());
+  g.append('line').attr('x1', 0).attr('x2', w).attr('y1', h).attr('y2', h).style('stroke', 'var(--axis)');
+  g.append('g').selectAll('circle').data(pts).join('circle').attr('cx', p => x(p.oz)).attr('cy', p => y(p.hoursToNext)).attr('r', 3.5).style('fill', 'var(--s1)').style('opacity', 0.35);
+  const bins = d3.groups(pts, p => Math.round(p.oz * 2) / 2).filter(([k, v]) => v.length >= 5).map(([k, v]) => ({ oz: k, h: mean(v.map(p => p.hoursToNext)), n: v.length })).sort((a, b) => a.oz - b.oz);
+  const line = d3.line().x(d => x(d.oz)).y(d => y(d.h)).curve(d3.curveMonotoneX);
+  g.append('path').attr('d', line(bins)).attr('fill', 'none').style('stroke', 'var(--s1-dark)').attr('stroke-width', 2).attr('stroke-linejoin', 'round').attr('stroke-linecap', 'round');
+  g.append('g').selectAll('circle').data(bins).join('circle').attr('cx', d => x(d.oz)).attr('cy', d => y(d.h)).attr('r', 4.5).style('fill', 'var(--s1-dark)').style('stroke', 'var(--surface)').attr('stroke-width', 2);
+  const del = d3.Delaunay.from(pts, p => x(p.oz), p => y(p.hoursToNext)); const hl = g.append('circle').attr('r', 6).style('fill', 'none').style('stroke', 'var(--ink)').attr('stroke-width', 2).style('opacity', 0).style('pointer-events', 'none');
+  svg.append('rect').attr('x', m.l).attr('y', m.t).attr('width', w).attr('height', h).attr('fill', 'transparent').on('pointermove', ev => {
+    const [px, py] = d3.pointer(ev, g.node()); const p = pts[del.find(px, py)]; if (!p) return; hl.attr('cx', x(p.oz)).attr('cy', y(p.hoursToNext)).style('opacity', 1);
+    const bin = bins.find(b => b.oz === Math.round(p.oz * 2) / 2);
+    showTip(ev, d3.timeFormat('%b %-d, %-I:%M %p')(p.t), [['Bottle', fmtOz(p.oz) + ' oz', 'var(--s1)'], ['Time to next feed', fmt1(p.hoursToNext) + ' h'], ...(bin ? [['Average for ' + bin.oz + ' oz bottles', fmt1(bin.h) + ' h (n=' + bin.n + ')', 'var(--s1-dark)']] : [])]);
+  }).on('pointerleave', () => { hl.style('opacity', 0); hideTip(); });
+  const st = pearson(pts.map(p => p.oz), pts.map(p => p.hoursToNext));
+  $('#feedSizeStats').textContent = fmtInt(pts.length) + ' feeds. Correlation between bottle size and the wait until the next feed: r = ' + fmt2(st.r) + ' (' + pText(st.p) + '). On average each extra ounce ' + (st.slope >= 0 ? 'adds' : 'removes') + ' ' + fmtInt(Math.round(Math.abs(st.slope) * 60)) + ' minutes before the next feed. Gaps over 12 hours and under 15 minutes are left out.';
+  makeTable('#feedSizeTable', [{ label: 'Bottle (oz)', get: b => b.oz }, { label: 'Feeds', get: b => b.n }, { label: 'Avg hours to next feed', get: b => b.h, fmt: fmt2 }], bins);
+}
+
+// ---------- lead / lag ----------
+function renderLag(days) {
+  const maxLag = 7; const res = detrend(days.filter(usable)); const st = lagStats(res, maxLag); const { lags, pairs, low, mid, high } = st; const l1 = lags[0];
+  const nul = res.length >= 20 ? permNull(res, maxLag) : { lags: lags.map(() => null), low: null, high: null };
+  lags.forEach((l, i) => { l.nul = nul.lags[i]; l.pPerm = l.nul && l.r != null ? l.nul.p(l.r) : null; l.excess = l.nul && l.r != null ? l.r - l.nul.mean : null; });
+  // callout
+  const co = $('#lagCallout'); co.textContent = '';
+  if (l1.r == null || l1.n < 20 || !l1.nul) co.textContent = 'Not enough full days in the selected range for a lead-lag read (it needs at least about three weeks). Widen the date range.';
+  else {
+    const sig = l1.pPerm < 0.05; const ex = l1.excess; const strength = Math.abs(ex) < 0.08 ? 'essentially no' : Math.abs(ex) < 0.2 ? 'a weak' : Math.abs(ex) < 0.35 ? 'a moderate' : 'a strong';
+    const b = document.createElement('b'); b.textContent = sig && ex < 0 ? 'Yes, she compensates: ' : sig && ex > 0 ? 'The opposite of compensation: ' : 'No reliable day-to-day compensation: '; co.appendChild(b);
+    let txt = 'across ' + fmtInt(l1.n) + ' pairs of consecutive full days, the correlation between how far a day sits from its trend and how far the next day does is r = ' + fmt2(l1.r) + '. ';
+    txt += 'Detrending alone would give about ' + fmt2(l1.nul.mean) + ' even if days were unrelated (the gray band shows that range), so the real signal is the gap: ' + d3.format('+.2f')(ex) + ', which is ' + strength + ' ' + (ex < 0 ? 'compensation' : 'persistence') + ' (shuffle test ' + pText(l1.pPerm) + '). ';
+    if (low.n && high.n && nul.low && nul.high) txt += 'After a light day (bottom third, averaging ' + fmtSigned(low.todayMean) + ' oz vs trend) the next day averaged ' + fmtSigned(low.mu) + ' oz vs trend, against ' + fmtSigned(nul.low.mean) + ' expected from shuffling; after a heavy day (top third, ' + fmtSigned(high.todayMean) + ' oz) it averaged ' + fmtSigned(high.mu) + ' oz against ' + fmtSigned(nul.high.mean) + ' expected. ';
+    if (sig && ex > 0) txt += 'Light days tend to come in runs, which fits illness, teething or a growth plateau more than appetite. Add illness events and tick "Exclude illness days" to see whether a compensation signal remains underneath.';
+    else if (sig && ex < 0) txt += 'She tends to make up for a light day on the very next day, which is the pattern of a healthy hunger drive.';
+    else txt += 'Day-to-day swings look mostly like noise around the trend: a light day is not a reliable predictor of a heavier one, nor of another light one. Any regulation seems to happen over a longer window than 24 hours.';
+    co.appendChild(document.createTextNode(txt));
+  }
+  const tiles = $('#lagTiles'); tiles.textContent = '';
+  const tile = (label, value, sub, help) => { const t = document.createElement('div'); t.className = 'tile' + (help ? ' help' : ''); const l = document.createElement('div'); l.className = 'label'; l.textContent = label + (help ? ' ⓘ' : ''); const v = document.createElement('div'); v.className = 'value'; v.textContent = value; const s = document.createElement('div'); s.className = 'delta'; s.textContent = sub; t.append(l, v, s); if (help) { t.addEventListener('pointermove', ev => showTip(ev, label, help.map(h => [h]))); t.addEventListener('pointerleave', hideTip); } tiles.appendChild(t); };
+  const nulFor = c => c === low ? nul.low : c === high ? nul.high : null;
+  const tileHelp = (c, nn) => {
+    const which = c.label === 'light day' ? 'the lightest third of days' : c.label === 'heavy day' ? 'the heaviest third of days' : 'the middle third of days';
+    const out = ['"' + c.label.charAt(0).toUpperCase() + c.label.slice(1) + 's" are ' + which + ', measured against what the surrounding week predicts for that day (on average ' + fmtSigned(c.todayMean) + ' oz). The big number is where the following day landed, on average: ' + (c.mu >= 0 ? fmtOz(c.mu) + ' oz above' : fmtOz(-c.mu) + ' oz below') + ' its own trend.'];
+    if (c.label === 'light day') out.push(c.mu > 0 ? 'So after a light day she did, on average, eat a little more than usual. ' : 'So after a light day she did not eat more than usual. ');
+    if (c.label === 'heavy day') out.push(c.mu < 0 ? 'So after a heavy day she pulled back a little. ' : 'So a heavy day was not followed by a lighter one. ');
+    if (nn) out.push('The catch: because each day\'s trend is built from its neighbours, even days in random order give about ' + fmtSigned(nn.mean) + ' oz here. The real question is whether ' + fmtSigned(c.mu) + ' differs from that, and the shuffle test says the chance of a gap this size arising by luck is ' + pText(nn.p(c.mu)).replace('p = ', '').replace('p < ', 'under ') + (nn.p(c.mu) < 0.05 ? ', which is low enough to take seriously.' : ', so it is not distinguishable from chance.'));
+    out.push(fmtPct(c.above) + ' of the following days were above trend; a coin flip would give about 50%.');
+    return out;
+  };
+  for (const c of [low, mid, high]) if (c.n) { const nn = nulFor(c); tile('Day after a ' + c.label, fmtSigned(c.mu) + ' oz', 'vs trend' + (nn ? ' (shuffled days: ' + fmtSigned(nn.mean) + ', ' + pText(nn.p(c.mu)) + ')' : '') + '; ' + fmtPct(c.above) + ' of next days above trend; n = ' + c.n, tileHelp(c, nn)); }
+  if (res.length > 2) { const sd = d3.deviation(res.map(r => r.res)); tile('Typical day-to-day swing', fmt1(sd) + ' oz', 'standard deviation of a day from its neighbours\' trend; n = ' + res.length + ' full days', ['On an ordinary day her intake lands within about ' + fmt1(sd) + ' oz of what the surrounding week would predict; roughly two out of three days fall inside that band and 19 out of 20 fall within ' + fmt1(2 * sd) + ' oz.', 'A day more than ' + fmt1(2 * sd) + ' oz off trend is genuinely unusual and worth a note (illness, a missed log, a big outing).', 'Use this as the yardstick for the other tiles: a shift of ' + fmtOz(Math.abs(low.mu || 0)) + ' oz after a light day is small next to a normal swing of ' + fmt1(sd) + ' oz.']); }
+  // correlation-by-lag chart
+  { const W = widthOf('#acfChart'), H = 230, m = { t: 10, r: 16, b: 32, l: 44 }, w = W - m.l - m.r, h = H - m.t - m.b; const svg = svgIn('#acfChart', W, H); const g = svg.append('g').attr('transform', 'translate(' + m.l + ',' + m.t + ')');
+    const x = d3.scaleBand().domain(lags.map(l => l.k)).range([0, w]).paddingInner(0.4).paddingOuter(0.2);
+    const ymax = Math.max(0.4, (d3.max(lags, l => Math.abs(l.r || 0)) || 0) * 1.25, (d3.max(lags, l => l.nul ? Math.max(Math.abs(l.nul.lo), Math.abs(l.nul.hi)) : 0) || 0) * 1.25); const y = d3.scaleLinear().domain([-ymax, ymax]).range([h, 0]);
+    yAxisLeft(g, y, w, 5, d3.format('+.1f')); g.append('g').attr('class', 'axis').attr('transform', 'translate(0,' + h + ')').call(d3.axisBottom(x).tickSize(0).tickPadding(8).tickFormat(k => k + (k === 1 ? ' day later' : ' days later'))).call(s => s.select('.domain').remove());
+    // shuffled-days band per lag (what detrending alone produces)
+    g.append('g').selectAll('rect').data(lags.filter(l => l.nul)).join('rect').attr('x', l => x(l.k)).attr('width', x.bandwidth()).attr('y', l => y(l.nul.hi)).attr('height', l => Math.max(1, y(l.nul.lo) - y(l.nul.hi))).attr('rx', 3).style('fill', 'var(--grid)').style('opacity', 0.8);
+    g.append('g').selectAll('line').data(lags.filter(l => l.nul)).join('line').attr('x1', l => x(l.k)).attr('x2', l => x(l.k) + x.bandwidth()).attr('y1', l => y(l.nul.mean)).attr('y2', l => y(l.nul.mean)).style('stroke', 'var(--muted)').attr('stroke-width', 1);
+    g.append('line').attr('x1', 0).attr('x2', w).attr('y1', y(0)).attr('y2', y(0)).style('stroke', 'var(--axis)');
+    const bw = Math.min(24, x.bandwidth());
+    g.append('g').selectAll('rect').data(lags.filter(l => l.r != null)).join('rect').attr('class', 'bar').attr('x', l => x(l.k) + (x.bandwidth() - bw) / 2).attr('width', bw).attr('y', l => Math.min(y(0), y(l.r))).attr('height', l => Math.abs(y(l.r) - y(0))).attr('rx', 3).style('fill', l => l.r >= 0 ? 'var(--s1)' : 'var(--div-neg)').style('opacity', l => l.pPerm != null && l.pPerm < 0.05 ? 1 : 0.5)
+      .on('pointermove', (ev, l) => showTip(ev, 'Today vs ' + l.k + ' day' + (l.k > 1 ? 's' : '') + ' later', [['Correlation (r)', fmt2(l.r), l.r >= 0 ? 'var(--s1)' : 'var(--div-neg)'], ...(l.nul ? [['Expected by chance', fmt2(l.nul.mean) + ' (' + fmt2(l.nul.lo) + ' to ' + fmt2(l.nul.hi) + ')', 'var(--muted)'], ['Real signal (bar minus chance)', d3.format('+.2f')(l.excess)], ['Odds of a gap this big by luck (p)', l.pPerm < 0.001 ? '< 0.001' : fmt2(l.pPerm)]] : []), ['Pairs of days compared', String(l.n)], ['Each oz off trend today predicts', fmtSigned(l.slope) + ' oz'], [lagMeaning(l)]])).on('pointerleave', hideTip);
+    if (l1.r != null) g.append('text').attr('x', x(1) + x.bandwidth() / 2).attr('y', y(l1.r) + (l1.r >= 0 ? -6 : 14)).attr('text-anchor', 'middle').attr('class', 'ann-label').style('fill', 'var(--ink)').style('font-weight', 600).text(d3.format('+.2f')(l1.r));
+  }
+  // scatter
+  { const W = widthOf('#scatterChart'), H = 250, m = { t: 10, r: 16, b: 46, l: 50 }, w = W - m.l - m.r, h = H - m.t - m.b; const svg = svgIn('#scatterChart', W, H); const g = svg.append('g').attr('transform', 'translate(' + m.l + ',' + m.t + ')');
+    const ext = d3.max(pairs, p => Math.max(Math.abs(p.x), Math.abs(p.y))) || 5; const x = d3.scaleLinear().domain([-ext, ext]).nice().range([0, w]); const y = d3.scaleLinear().domain([-ext, ext]).nice().range([h, 0]);
+    yAxisLeft(g, y, w, 5, d3.format('+d')); g.append('g').attr('class', 'axis').attr('transform', 'translate(0,' + h + ')').call(d3.axisBottom(x).ticks(6).tickSize(0).tickPadding(8).tickFormat(d3.format('+d'))).call(s => s.select('.domain').remove());
+    g.append('line').attr('x1', x(0)).attr('x2', x(0)).attr('y1', 0).attr('y2', h).style('stroke', 'var(--axis)'); g.append('line').attr('x1', 0).attr('x2', w).attr('y1', y(0)).attr('y2', y(0)).style('stroke', 'var(--axis)');
+    g.append('text').attr('x', w / 2).attr('y', h + 34).attr('text-anchor', 'middle').attr('class', 'ann-label').text('today, oz above (+) or below (−) trend'); g.append('text').attr('transform', 'rotate(-90)').attr('x', -h / 2).attr('y', -32).attr('text-anchor', 'middle').attr('class', 'ann-label').text('tomorrow, oz vs trend');
+    const quad = (xx, yy, anchor, txt) => g.append('text').attr('x', xx).attr('y', yy).attr('text-anchor', anchor).attr('class', 'ann-label').style('fill', 'var(--muted)').style('font-size', '10.5px').text(txt);
+    quad(6, 12, 'start', 'light day → catch-up'); quad(6, h - 8, 'start', 'light day → another light day'); quad(w - 6, 12, 'end', 'heavy day → another heavy day'); quad(w - 6, h - 8, 'end', 'heavy day → lighter day');
+    $('#scatterFit').textContent = l1.r != null ? ' (each oz below trend today predicts ' + fmtSigned(-l1.slope) + ' oz tomorrow)' : '';
+    g.append('g').selectAll('circle').data(pairs).join('circle').attr('cx', p => x(p.x)).attr('cy', p => y(p.y)).attr('r', 4).style('fill', 'var(--s1)').style('opacity', 0.6).style('stroke', 'var(--surface)').attr('stroke-width', 2);
+    if (l1.r != null) { const xs = x.domain(); g.append('line').attr('x1', x(xs[0])).attr('x2', x(xs[1])).attr('y1', y(l1.intercept + l1.slope * xs[0])).attr('y2', y(l1.intercept + l1.slope * xs[1])).style('stroke', 'var(--s1-dark)').attr('stroke-width', 2); }
+    if (pairs.length > 2) { const del = d3.Delaunay.from(pairs, p => x(p.x), p => y(p.y)); const hl = g.append('circle').attr('r', 7).style('fill', 'none').style('stroke', 'var(--ink)').attr('stroke-width', 2).style('opacity', 0).style('pointer-events', 'none');
+      svg.append('rect').attr('x', m.l).attr('y', m.t).attr('width', w).attr('height', h).attr('fill', 'transparent').on('pointermove', ev => { const [px, py] = d3.pointer(ev, g.node()); const p = pairs[del.find(px, py)]; if (!p) return; hl.attr('cx', x(p.x)).attr('cy', y(p.y)).style('opacity', 1); const meaning = p.x < 0 ? (p.y > 0 ? 'A light day followed by a catch-up: she was ' + fmtOz(-p.x) + ' oz under what the week predicted, then ' + fmtOz(p.y) + ' oz over the next day' + (p.y >= -p.x ? ', making up all of it.' : ', making up about ' + fmtPct(p.y / -p.x) + ' of it.') : 'A light day followed by another light day. One pair like this means nothing; many together suggest a bug or a growth lull rather than appetite.') : (p.y < 0 ? 'A heavy day followed by a lighter one, as if she balanced it out.' : 'Two heavier-than-usual days in a row, the pattern of a growth spurt.'); showTip(ev, fmtDay(p.day) + ' → ' + fmtDay(addDays(p.day, 1)), [['Today', fmtOz(p.ozToday) + ' oz (' + fmtSigned(p.x) + ' vs trend)', 'var(--s1)'], ['Tomorrow', fmtOz(p.ozNext) + ' oz (' + fmtSigned(p.y) + ' vs trend)'], ['What the week predicted', fmtOz(p.trend) + ' oz/day'], [meaning]]); }).on('pointerleave', () => { hl.style('opacity', 0); hideTip(); }); }
+  }
+  makeTable('#lagTable', [{ label: 'Lag (days)', get: l => l.k }, { label: 'Pairs', get: l => l.n }, { label: 'Correlation r', get: l => l.r, fmt: fmt2 }, { label: 'Shuffled-days mean', get: l => l.nul ? l.nul.mean : null, fmt: fmt2 }, { label: 'Shuffled 2.5%', get: l => l.nul ? l.nul.lo : null, fmt: fmt2 }, { label: 'Shuffled 97.5%', get: l => l.nul ? l.nul.hi : null, fmt: fmt2 }, { label: 'Gap vs shuffled', get: l => l.excess, fmt: d3.format('+.2f') }, { label: 'Shuffle-test p', get: l => l.pPerm, fmt: v => v < 0.001 ? '<0.001' : fmt2(v) }, { label: 'Slope (oz later per oz today)', get: l => l.slope, fmt: fmt2 }], lags);
+  $('#lagNote').textContent = 'Each day\'s trend is the average of its neighbours within three days (the day itself excluded; at least four neighbours needed). Excluded or partial days break the chain, so pairs that straddle them are dropped. Because detrending pushes residuals toward negative correlation on its own, the gray band shows what 400 reshuffles of the same days produce; only a bar that escapes its band means something, and faded bars do not. Based on ' + res.length + ' full days in the selected range.';
+}
+
+// ---------- events UI ----------
+function windowStats(a, b) {
+  const ill = state.excludeIll ? illnessDays() : new Set(); const list = [];
+  for (let k = a; k <= b; k = addDays(k, 1)) { const d = DATA.days.get(k); if (d && !d.partial && !ill.has(k)) list.push(d); }
+  const n = list.length; if (!n) return { n: 0 };
+  const sumOzFeeds = d3.sum(list, d => d.ozFeeds);
+  return { n, oz: d3.sum(list, d => d.oz) / n, kcal: d3.sum(list, dayKcal) / n, ozSd: n > 1 ? d3.deviation(list, d => d.oz) : 0, ozList: list.map(d => d.oz), feeds: d3.sum(list, d => d.feeds) / n, ozPerFeed: sumOzFeeds ? d3.sum(list, d => d.oz) / sumOzFeeds : null, sleepH: mean(list.filter(d => d.sleepMin != null).map(d => d.sleepMin / 60)), stretchH: mean(list.map(d => d.stretchH).filter(x => x != null)) };
+}
+// Welch t-test on two lists of daily ounces -> two-sided p
+function welchP(a, b) {
+  if (a.length < 3 || b.length < 3) return null;
+  const ma = mean(a), mb = mean(b), va = d3.variance(a) || 0, vb = d3.variance(b) || 0; const se = Math.sqrt(va / a.length + vb / b.length); if (!se) return null;
+  const t = (ma - mb) / se; const df = Math.pow(va / a.length + vb / b.length, 2) / ((va * va) / (a.length * a.length * (a.length - 1)) + (vb * vb) / (b.length * b.length * (b.length - 1)));
+  return 2 * (1 - tCdf(Math.abs(t), df));
+}
+function tCdf(t, df) { const x = df / (df + t * t); return 1 - 0.5 * ibeta(x, df / 2, 0.5); }
+function ibeta(x, a, b) { // regularized incomplete beta (Numerical Recipes continued fraction)
+  if (x <= 0) return 0; if (x >= 1) return 1;
+  const bt = Math.exp(lgamma(a + b) - lgamma(a) - lgamma(b) + a * Math.log(x) + b * Math.log(1 - x));
+  return x < (a + 1) / (a + b + 2) ? bt * betacf(x, a, b) / a : 1 - bt * betacf(1 - x, b, a) / b;
+}
+function betacf(x, a, b) {
+  const tiny = 1e-30; let c = 1, d = 1 - (a + b) * x / (a + 1); if (Math.abs(d) < tiny) d = tiny; d = 1 / d; let f = d;
+  for (let m = 1; m <= 200; m++) {
+    const m2 = 2 * m; let aa = m * (b - m) * x / ((a + m2 - 1) * (a + m2));
+    d = 1 + aa * d; if (Math.abs(d) < tiny) d = tiny; c = 1 + aa / c; if (Math.abs(c) < tiny) c = tiny; d = 1 / d; f *= d * c;
+    aa = -(a + m) * (a + b + m) * x / ((a + m2) * (a + m2 + 1));
+    d = 1 + aa * d; if (Math.abs(d) < tiny) d = tiny; c = 1 + aa / c; if (Math.abs(c) < tiny) c = tiny; d = 1 / d; const del = d * c; f *= del;
+    if (Math.abs(del - 1) < 1e-10) break;
+  }
+  return f;
+}
+function lgamma(z) { const g = 7, c = [0.99999999999980993, 676.5203681218851, -1259.1392167224028, 771.32342877765313, -176.61502916214059, 12.507343278686905, -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7]; if (z < 0.5) return Math.log(Math.PI / Math.sin(Math.PI * z)) - lgamma(1 - z); z -= 1; let x = c[0]; for (let i = 1; i < g + 2; i++) x += c[i] / (z + i); const t = z + g + 0.5; return 0.5 * Math.log(2 * Math.PI) + (z + 0.5) * Math.log(t) - t + Math.log(x);
+}
+function eventWindows(e, W) {
+  const before = windowStats(addDays(e.start, -W), addDays(e.start, -1)); const during = e.end ? windowStats(e.start, e.end) : null; const afterStart = e.end ? addDays(e.end, 1) : e.start; const after = windowStats(afterStart, addDays(afterStart, W - 1));
+  return { before, during, after };
+}
+function resetEventForm() { const f = $('#eventForm'); delete f.dataset.editing; f.reset(); $('#evSubmit').textContent = 'Add event'; }
+function renderEvents() {
+  $('#btnResetEvents').classList.toggle('hidden', !(Array.isArray(BUNDLED_EVENTS) && localStorage.getItem(LS.events)));
+  const lg = $('#evLegend'); lg.textContent = ''; for (const c of CATS) { const s = document.createElement('span'); s.className = 'key'; const i = document.createElement('span'); i.className = 'sw'; i.style.background = c.color; s.appendChild(i); s.appendChild(document.createTextNode(c.label)); lg.appendChild(s); }
+  const list = $('#eventList'); list.textContent = ''; const sorted = events.slice().sort((a, b) => a.start < b.start ? -1 : 1);
+  if (!sorted.length) { const p = document.createElement('div'); p.className = 'note'; p.textContent = 'No events yet. Add the first one above.'; list.appendChild(p); }
+  for (const e of sorted) {
+    const row = document.createElement('div'); row.className = 'event-row'; const dot = document.createElement('span'); dot.className = 'dot'; dot.style.background = catColor(e.category); const name = document.createElement('span'); name.className = 'name'; name.textContent = e.name;
+    const meta = document.createElement('span'); meta.className = 'meta'; meta.textContent = catLabel(e.category) + ' · ' + fmtDayY(e.start) + (e.end ? ' – ' + fmtDayY(e.end) + ' (' + (diffDays(e.start, e.end) + 1) + ' days)' : '') + (e.notes ? ' · ' + e.notes : '');
+    const edit = document.createElement('button'); edit.type = 'button'; edit.textContent = 'Edit'; edit.onclick = () => { $('#evName').value = e.name; $('#evCat').value = e.category; $('#evStart').value = e.start; $('#evEnd').value = e.end || ''; $('#evNotes').value = e.notes || ''; $('#eventForm').dataset.editing = e.id; $('#evSubmit').textContent = 'Save changes'; $('#evName').focus(); $('#eventForm').scrollIntoView({ behavior: 'smooth', block: 'center' }); };
+    const del = document.createElement('button'); del.type = 'button'; del.textContent = 'Delete'; del.className = 'danger'; del.onclick = () => { events = events.filter(x => x.id !== e.id); saveEvents(); renderAll(); };
+    row.append(dot, name, meta, edit, del); list.appendChild(row);
+  }
+  // before / after
+  const W = state.win; const rows = sorted.map(e => Object.assign({ e }, eventWindows(e, W))).filter(r => r.before.n || r.after.n);
+  const cols = [{ label: 'Event', get: r => r.e.name }, { label: 'Window', get: r => r.w }, { label: 'Days', get: r => r.s.n }, { label: 'Oz/day', get: r => r.s.oz, fmt: r => fmtOz(r) }, { label: 'kcal/day', get: r => r.s.kcal, fmt: v => fmtInt(Math.round(v)) }, { label: 'Feeds/day', get: r => r.s.feeds, fmt: fmt1 }, { label: 'Oz/feed', get: r => r.s.ozPerFeed, fmt: fmt2 }, { label: 'Longest stretch (h)', get: r => r.s.stretchH, fmt: fmt1 }, { label: 'Sleep h/day', get: r => r.s.sleepH, fmt: fmt1 }];
+  const flat = []; const diff = (a, b) => a != null && b != null ? a - b : null;
+  for (const r of rows) {
+    if (r.before.n) flat.push({ e: r.e, w: 'before (' + W + 'd)', s: r.before }); if (r.during && r.during.n) flat.push({ e: r.e, w: 'during', s: r.during }); if (r.after.n) flat.push({ e: r.e, w: 'after (' + W + 'd)', s: r.after });
+    if (r.before.n && r.after.n) flat.push({ e: r.e, w: 'change (after − before)', s: { n: null, oz: r.after.oz - r.before.oz, kcal: r.after.kcal - r.before.kcal, feeds: r.after.feeds - r.before.feeds, ozPerFeed: diff(r.after.ozPerFeed, r.before.ozPerFeed), stretchH: diff(r.after.stretchH, r.before.stretchH), sleepH: diff(r.after.sleepH, r.before.sleepH) } });
+  }
+  const signedCols = cols.map(c => Object.assign({}, c, { fmt: c.fmt ? (v, row) => c.fmt(v) : undefined }));
+  const tbl = $('#eventStatsTable'); makeTable(tbl, cols, flat);
+  // make the change rows read as signed deltas
+  Array.from(tbl.querySelectorAll('tbody tr')).forEach((tr, i) => { if (flat[i].w.startsWith('change')) { tr.style.fontWeight = '600'; Array.from(tr.cells).slice(3).forEach(td => { const v = parseFloat(td.textContent); if (isFinite(v) && v > 0) td.textContent = '+' + td.textContent; }); } });
+  void signedCols;
+  // dumbbell of oz/day
+  const dd = rows.filter(r => r.before.n && r.after.n); const host = $('#dumbbellChart'); if (!dd.length) { host.textContent = ''; return; }
+  const Wd = widthOf('#dumbbellChart'), rowH = 30, m = { t: 8, r: 90, b: 30, l: 10 }, H = m.t + dd.length * rowH + m.b, labelW = Math.min(300, Wd * 0.3), w = Wd - m.l - m.r - labelW;
+  const svg = svgIn('#dumbbellChart', Wd, H); const g = svg.append('g').attr('transform', 'translate(' + (m.l + labelW) + ',' + m.t + ')');
+  const allv = dd.flatMap(r => [r.before.oz, r.after.oz]).filter(v => v != null); const x = d3.scaleLinear().domain([Math.max(0, d3.min(allv) - 3), d3.max(allv) + 3]).nice().range([0, w]);
+  g.append('g').selectAll('line').data(x.ticks(6)).join('line').attr('class', 'gridline').attr('x1', d => x(d)).attr('x2', d => x(d)).attr('y1', 0).attr('y2', dd.length * rowH);
+  g.append('g').attr('class', 'axis').attr('transform', 'translate(0,' + (dd.length * rowH) + ')').call(d3.axisBottom(x).ticks(6).tickSize(0).tickPadding(8).tickFormat(d => d + ' oz/day')).call(s => s.select('.domain').remove());
+  dd.forEach((r, i) => {
+    const cy = i * rowH + rowH / 2; const grp = g.append('g');
+    grp.append('text').attr('x', -10).attr('y', cy + 4).attr('text-anchor', 'end').attr('class', 'ann-label').style('fill', 'var(--ink)').text(r.e.name.length > 36 ? r.e.name.slice(0, 34) + '…' : r.e.name);
+    grp.append('line').attr('x1', x(r.before.oz)).attr('x2', x(r.after.oz)).attr('y1', cy).attr('y2', cy).style('stroke', 'var(--s1)').attr('stroke-width', 2);
+    grp.append('circle').attr('cx', x(r.before.oz)).attr('cy', cy).attr('r', 6).style('fill', 'var(--s1-light)').style('stroke', 'var(--surface)').attr('stroke-width', 2);
+    grp.append('circle').attr('cx', x(r.after.oz)).attr('cy', cy).attr('r', 6).style('fill', 'var(--s1)').style('stroke', 'var(--surface)').attr('stroke-width', 2);
+    if (r.during && r.during.n) grp.append('rect').attr('x', x(r.during.oz) - 4).attr('y', cy - 4).attr('width', 8).attr('height', 8).attr('rx', 2).attr('transform', 'rotate(45 ' + x(r.during.oz) + ' ' + cy + ')').style('fill', catColor(r.e.category)).style('stroke', 'var(--surface)').attr('stroke-width', 2);
+    const d = r.after.oz - r.before.oz; grp.append('text').attr('x', x(Math.max(r.before.oz, r.after.oz)) + 10).attr('y', cy + 4).attr('class', 'ann-label').style('fill', 'var(--ink)').style('font-weight', 600).text(fmtSigned(d) + ' oz/day');
+    const pBA = welchP(r.before.ozList, r.after.ozList); const sdW = Math.max(r.before.ozSd || 0, r.after.ozSd || 0); const pct = r.before.oz ? d / r.before.oz : 0;
+    let meaning = 'Intake ' + (Math.abs(pct) < 0.05 ? 'barely moved: ' : (d > 0 ? 'rose from ' : 'fell from ')) + fmtOz(r.before.oz) + ' to ' + fmtOz(r.after.oz) + ' oz/day (' + fmtSigned(d) + ', ' + d3.format('+.0%')(pct) + '). Days inside these windows differed from each other by about ' + fmt1(sdW) + ' oz, so ';
+    meaning += pBA != null && pBA < 0.05 ? 'a shift this size is bigger than that noise usually produces (' + pText(pBA) + '): probably a real change, though not necessarily caused by this event.' : 'this difference is within what noise alone produces (' + (pBA != null ? pText(pBA) : 'too few days to test') + '): no clear change in how much she ate.';
+    const fd = r.after.feeds - r.before.feeds, pf = r.after.ozPerFeed != null && r.before.ozPerFeed != null ? r.after.ozPerFeed - r.before.ozPerFeed : null;
+    let pattern = '';
+    if (Math.abs(fd) >= 1 && pf != null && Math.sign(pf) === -Math.sign(fd)) pattern = fd < 0 ? 'She moved to fewer, larger feeds (' + fmt1(r.before.feeds) + ' → ' + fmt1(r.after.feeds) + ' a day, ' + fmt2(r.before.ozPerFeed) + ' → ' + fmt2(r.after.ozPerFeed) + ' oz each), which reads as more settled feeding even though the total hardly changed.' : 'She moved to more, smaller feeds (' + fmt1(r.before.feeds) + ' → ' + fmt1(r.after.feeds) + ' a day), a grazing pattern that often goes with discomfort or disruption.';
+    let catNote = '';
+    if (r.e.category === 'medication') catNote = pattern || 'The medication was not accompanied by a visible change in volume. Comfort changes usually show up as fewer, bigger feeds rather than more ounces, so look at feeds/day and oz/feed in the table.';
+    else if (r.e.category === 'illness') catNote = (r.during && r.during.n ? 'During the illness itself she averaged ' + fmtOz(r.during.oz) + ' oz/day. ' : '') + (d >= 0 ? 'Intake after was back at or above the pre-illness level, so she recovered her appetite.' : 'Intake after was still below the pre-illness level; worth watching the next week.') + (pattern ? ' ' + pattern : '');
+    else if (r.e.category === 'daycare') catNote = 'Daycare bottles are often logged from caregiver estimates, so part of any step here can be a change in how feeds were recorded rather than in appetite.' + (pattern ? ' ' + pattern : '');
+    else if (/fortif|kcal/i.test(r.e.name)) catNote = 'Volume ' + (Math.abs(pct) < 0.05 ? 'stayed about the same' : (d > 0 ? 'rose' : 'fell') + ' ' + d3.format('.0%')(Math.abs(pct))) + ' while calories went from ' + fmtInt(Math.round(r.before.kcal)) + ' to ' + fmtInt(Math.round(r.after.kcal)) + ' kcal/day (' + d3.format('+.0%')(r.before.kcal ? (r.after.kcal - r.before.kcal) / r.before.kcal : 0) + ') because of the richer mix. ' + (d < -0.5 ? 'She drank a little less of the denser formula, which is common; the calorie gain is what matters here.' : 'She did not drink less of the denser formula, so the fortification delivered its full calorie boost.');
+    else if (/solid/i.test(r.e.name)) catNote = d < -0.5 ? 'A drop in bottle volume after starting solids is expected: food is replacing some formula.' : 'Bottle volume did not drop after starting solids, so food has so far come on top of formula rather than replacing it. That is normal in the first weeks, when solids are mostly practice.';
+    else catNote = pattern;
+    const rows = [['Before (' + r.before.n + ' days)', fmtOz(r.before.oz) + ' oz/day', 'var(--s1-light)'], ...(r.during && r.during.n ? [['During (' + r.during.n + ' days)', fmtOz(r.during.oz) + ' oz/day', catColor(r.e.category)]] : []), ['After (' + r.after.n + ' days)', fmtOz(r.after.oz) + ' oz/day', 'var(--s1)'], ['Change', fmtSigned(d) + ' oz/day'], ['Calories before → after', fmtInt(Math.round(r.before.kcal)) + ' → ' + fmtInt(Math.round(r.after.kcal)) + ' kcal/day (' + d3.format('+.0%')(r.before.kcal ? (r.after.kcal - r.before.kcal) / r.before.kcal : 0) + ')'], ['Feeds/day change', fmtSigned(fd)], ...(pf != null ? [['Oz per feed change', d3.format('+.2f')(pf) + ' oz']] : []), ...(r.after.sleepH != null && r.before.sleepH != null ? [['Sleep change', fmtSigned(r.after.sleepH - r.before.sleepH) + ' h/day']] : []), [meaning]];
+    if (catNote) rows.push([catNote]);
+    grp.append('rect').attr('x', -labelW).attr('y', cy - rowH / 2).attr('width', labelW + w + m.r).attr('height', rowH).attr('fill', 'transparent').on('pointermove', ev => showTip(ev, r.e.name, rows)).on('pointerleave', hideTip);
+  });
+}
+
+// ---------- header / footer ----------
+function renderHeader() {
+  const birth = settings.birth || DATA.first; const ageDays = diffDays(birth, DATA.last); const weeks = Math.floor(ageDays / 7); const months = Math.floor(ageDays / 30.44);
+  $('#ageLabel').textContent = 'born ' + fmtDayY(birth) + ' · ' + months + ' mo ' + (weeks - Math.floor(months * 30.44 / 7)) + ' wk at last entry'; $('#prepared').textContent = 'Feeding summary · prepared ' + d3.timeFormat('%b %-d, %Y')(new Date());
+  document.title = dashTitle(); $('#titleText').textContent = dashTitle();
+  const ozFeeds = DATA.feeds.filter(f => f.oz != null).length;
+  $('#dataRange').textContent = fmtInt(DATA.rows.length) + ' Huckleberry entries, ' + fmtDayY(DATA.first) + ' to ' + fmtDayY(DATA.last) + ': ' + fmtInt(DATA.feeds.length) + ' feeds (' + fmtInt(ozFeeds) + ' with ounces), ' + fmtInt(DATA.sleeps.length) + ' sleeps, ' + fmtInt(DATA.diapers.length) + ' diapers, ' + fmtInt(DATA.meds.length) + ' doses, ' + fmtInt(DATA.growth.length) + ' growth entries.' + (localStorage.getItem(LS.csv) ? ' Showing a CSV loaded into this browser.' : '');
+  const suspects = DATA.feeds.filter(f => f.suspect);
+  $('#footNote').textContent = 'Notes: "All" starts on ' + fmtDayY(DATA.analysisStart) + ', the first day with four or more measured bottle feeds and no nursing; earlier days are reachable with a custom range (nursing has no ounces). The last day of the export (' + fmtDayY(DATA.last) + ') is treated as partial and left out of averages, as is any day with no feeds logged. ' + (suspects.length ? suspects.length + ' feed' + (suspects.length > 1 ? 's' : '') + ' over ' + MAX_PLAUSIBLE_OZ + ' oz (' + suspects.map(f => fmtDay(f.day) + ' ' + d3.timeFormat('%-I:%M %p')(f.t) + ': ' + f.rawOz + ' oz').join('; ') + ') look like typos and are not counted toward ounces; fix them in Huckleberry and re-export to include them. ' : '') + 'Ages use the birth date in Settings (' + fmtDayY(birth) + '). Sleep and diaper figures only cover days on which they were logged. Intake per body weight divides the day\'s ounces by weight interpolated between weigh-ins and held flat after the last one (' + (DATA.growth.filter(x => x.lbs != null).length ? fmtDayY(DATA.growth.filter(x => x.lbs != null).slice(-1)[0].day) : 'none') + '), so it drifts high until a new weight is logged; formula calories use the kcal/oz values and fortification date in Settings, and the targets on the chart come from the nutrition note (editable there too). Calories from solids are not logged, so after solids start the bottle alone understates her total intake. Everything runs in this browser; nothing is uploaded.';
+}
+
+// ---------- hero: intake per body weight ----------
+const birthDay = () => settings.birth || DATA.first;
+function ageLabel(dayK) { const n = diffDays(birthDay(), dayK); if (n < 0) return ''; if (n < 91) return Math.floor(n / 7) + ' wk'; return (n / 30.44).toFixed(1).replace(/\.0$/, '') + ' mo'; }
+const LB_KG = 0.453592, ML_OZ = 29.5735;
+const isMetric = () => state.units === 'metric';
+const lbsText = lbs => isMetric() ? fmt2(lbs * LB_KG) + ' kg' : fmt2(lbs) + ' lb';
+const kcalPerOz = dayK => (settings.fortStart && dayK >= settings.fortStart) ? +settings.kcalFort : +settings.kcalBase;
+const dayKcal = d => d.oz * kcalPerOz(d.day);
+const volText = oz => isMetric() ? fmtInt(Math.round(oz * ML_OZ)) + ' ml' : fmtOz(oz) + ' oz';
+const MEASURES = {
+  kcal: { id: 'kcal', unit: 'kcal/kg/day', short: 'kcal/kg', metric: true, title: 'Calories per kilogram of body weight per day', fmt: v => fmtInt(Math.round(v)), dfmt: v => d3.format('+,d')(Math.round(v)),
+    val: d => d.weightLbs ? dayKcal(d) / (d.weightLbs * LB_KG) : null,
+    targets: () => [].concat(settings.needsKcalLow && settings.needsKcalHigh ? [{ kind: 'band', lo: +settings.needsKcalLow, hi: +settings.needsKcalHigh, label: 'estimated needs ' + settings.needsKcalLow + '–' + settings.needsKcalHigh + ' kcal/kg/day' }] : [], settings.prescribedKcal ? [{ kind: 'line', v: +settings.prescribedKcal, label: 'prescribed ' + settings.prescribedKcal + ' kcal/kg/day' }] : []),
+    assess: v => { const lo = +settings.needsKcalLow, hi = +settings.needsKcalHigh; if (!lo || !hi) return 'no calorie target set yet (add the needs from a nutrition note in Settings)'; if (v < lo) return 'below the estimated needs of ' + lo + '–' + hi + ' kcal/kg/day, about ' + fmtInt(Math.round(lo - v)) + ' under the floor'; if (v > hi) return 'above the estimated needs of ' + lo + '–' + hi + ' kcal/kg/day'; return 'within the estimated needs of ' + lo + '–' + hi + ' kcal/kg/day'; } },
+  fluid: { id: 'fluid', unit: 'ml/kg/day', short: 'ml/kg', metric: true, title: 'Millilitres per kilogram of body weight per day', fmt: v => fmtInt(Math.round(v)), dfmt: v => d3.format('+,d')(Math.round(v)),
+    val: d => d.weightLbs ? d.oz * ML_OZ / (d.weightLbs * LB_KG) : null,
+    targets: () => [].concat(settings.needsFluid ? [{ kind: 'line', v: +settings.needsFluid, label: 'estimated needs ' + settings.needsFluid + '+ ml/kg/day' }] : [], settings.prescribedFluid ? [{ kind: 'line', v: +settings.prescribedFluid, label: 'prescribed ' + settings.prescribedFluid + ' ml/kg/day' }] : []),
+    assess: v => { const lo = +settings.needsFluid; if (!lo) return 'no fluid target set yet (add it in Settings)'; return v < lo ? 'below the estimated fluid needs of ' + lo + '+ ml/kg/day, about ' + fmtInt(Math.round(lo - v)) + ' under' : 'at or above the estimated fluid needs of ' + lo + '+ ml/kg/day'; } },
+  ozlb: { id: 'ozlb', unit: 'oz/lb/day', short: 'oz/lb', metric: false, title: 'Ounces per pound of body weight per day', fmt: fmt2, dfmt: d3.format('+.2f'),
+    val: d => d.weightLbs ? d.oz / d.weightLbs : null,
+    targets: () => [{ kind: 'line', v: GUIDELINE_OZ_LB, label: 'general rule of thumb for young formula-fed infants, ' + GUIDELINE_OZ_LB + ' oz/lb/day' }],
+    assess: v => fmtPct(v / GUIDELINE_OZ_LB) + ' of the general ' + GUIDELINE_OZ_LB + ' oz/lb rule of thumb (which does not account for fortified formula or solids)' },
+};
+const measure = () => MEASURES[state.measure] || MEASURES.kcal;
+function renderHero(days) {
+  const M = measure(); const gran = state.gran; const periods = aggregate(days, gran); const ok = days.filter(usable);
+  const byKey = d3.group(ok, d => periodKey(d.day, gran));
+  const wByKey = new Map(), vByKey = new Map(), kcalByKey = new Map();
+  for (const [k, list] of byKey) { const wl = list.filter(d => d.weightLbs); if (wl.length) wByKey.set(k, mean(wl.map(d => d.weightLbs))); const vv = list.map(M.val).filter(v => v != null); if (vv.length) vByKey.set(k, mean(vv)); kcalByKey.set(k, mean(list.map(dayKcal))); }
+  const last7 = ok.slice(-7), prev7 = ok.slice(-14, -7);
+  const cur = mean(last7.map(M.val).filter(v => v != null)), prev = mean(prev7.map(M.val).filter(v => v != null));
+  // headline
+  const hv = $('#heroValue'); hv.textContent = ''; hv.appendChild(document.createTextNode(cur != null ? M.fmt(cur) : '–')); const sm = document.createElement('small'); sm.textContent = M.unit; hv.appendChild(sm);
+  const hs = $('#heroSub'); hs.textContent = '';
+  if (cur != null) {
+    hs.appendChild(document.createTextNode('Average of the last 7 full days: ' + M.assess(cur) + '. '));
+    if (prev != null) { const sp = document.createElement('span'); const d = cur - prev; sp.className = d >= 0 ? 'up' : 'down'; sp.textContent = (d >= 0 ? '▲ ' : '▼ ') + M.dfmt(d); hs.appendChild(sp); hs.appendChild(document.createTextNode(' vs the 7 days before.')); }
+  } else hs.textContent = 'No full days with a weight in this range.';
+  const facts = $('#heroFacts'); facts.textContent = '';
+  const fact = (k, v) => { const r = document.createElement('div'); r.className = 'fact'; const a = document.createElement('span'); a.textContent = k; const b = document.createElement('b'); b.textContent = v; r.append(a, b); facts.appendChild(r); };
+  const ozLast = mean(last7.map(d => d.oz)); if (ozLast != null) fact('Intake, last 7 full days', volText(ozLast) + ' / day');
+  const kcalLast = mean(last7.map(dayKcal)); if (kcalLast != null) fact('Calories from formula', fmtInt(Math.round(kcalLast)) + ' kcal / day');
+  fact('Formula density now', kcalPerOz(DATA.last) + ' kcal/oz' + (settings.fortStart && DATA.last >= settings.fortStart ? ' (fortified since ' + fmtDay(settings.fortStart) + ')' : ''));
+  const fLast = mean(last7.map(d => d.feeds)); if (fLast != null) fact('Feeds per day', fmt1(fLast));
+  const gw = allWeighIns().slice(-1)[0]; if (gw) fact('Weight used (last weigh-in ' + fmtDay(gw.day) + ')', lbsText(gw.lbs));
+  fact('Age at last entry', ageLabel(DATA.last));
+  // chart
+  const W = widthOf('#heroChart'), H = 360, m = { t: 46, r: 118, b: 44, l: 48 }, w = W - m.l - m.r, h = H - m.t - m.b;
+  const svg = svgIn('#heroChart', W, H); const g = svg.append('g').attr('transform', 'translate(' + m.l + ',' + m.t + ')');
+  const x = d3.scaleBand().domain(periods.map(p => p.key)).range([0, w]).paddingInner(0).paddingOuter(0);
+  const vals = periods.filter(p => vByKey.has(p.key) && !p.partial).map(p => ({ key: p.key, v: vByKey.get(p.key) }));
+  const roll = gran === 'daily' ? rolling(days, M.val) : null;
+  const targets = M.targets(); const tmax = d3.max(targets, t => t.kind === 'band' ? t.hi : t.v) || 0;
+  const y = d3.scaleLinear().domain([0, Math.max(d3.max(vals, p => p.v) || 1, tmax * 1.12) * 1.05]).nice().range([h, 0]);
+  yAxisLeft(g, y, w, 5, v => M.fmt(v));
+  // x axis with age row
+  let tickKeys; if (gran === 'daily') tickKeys = periods.length > 45 ? periods.filter(p => fromKey(p.key).getDate() === 1).map(p => p.key) : periods.filter((p, i) => i % Math.ceil(periods.length / 10) === 0).map(p => p.key);
+  else if (gran === 'weekly') tickKeys = periods.filter((p, i) => i % Math.ceil(periods.length / 10) === 0).map(p => p.key); else tickKeys = periods.map(p => p.key);
+  const tickFmt = k => gran === 'daily' ? d3.timeFormat(periods.length > 45 ? '%b' : '%b %-d')(fromKey(k)) : gran === 'weekly' ? fmtDay(k) : periodLabel(k, gran);
+  const ax = g.append('g').attr('class', 'axis').attr('transform', 'translate(0,' + h + ')').call(d3.axisBottom(x).tickValues(tickKeys).tickSize(0).tickPadding(8).tickFormat(tickFmt)); ax.select('.domain').remove();
+  ax.selectAll('.tick text').each(function (k) { const day = gran === 'monthly' ? k + '-01' : k; d3.select(this.parentNode).append('text').attr('class', 'age').attr('y', 22).attr('dy', '0.71em').attr('text-anchor', 'middle').text(ageLabel(day)); });
+  g.append('line').attr('x1', 0).attr('x2', w).attr('y1', h).attr('y2', h).style('stroke', 'var(--axis)');
+  drawEvents(g, periods, x, gran, h, true);
+  // targets from the nutrition note
+  for (const t of targets) {
+    if (t.kind === 'band') { g.append('rect').attr('x', 0).attr('width', w).attr('y', y(t.hi)).attr('height', Math.max(1, y(t.lo) - y(t.hi))).style('fill', 'var(--s3)').style('opacity', 0.10); for (const v of [t.lo, t.hi]) g.append('line').attr('x1', 0).attr('x2', w).attr('y1', y(v)).attr('y2', y(v)).style('stroke', 'var(--s3)').style('opacity', 0.55).attr('stroke-width', 1); g.append('text').attr('x', w - 6).attr('y', y(t.hi) - 6).attr('text-anchor', 'end').attr('class', 'ann-label').style('fill', 'var(--ink-2)').text(t.label + (settings.targetsNote ? ' (' + settings.targetsNote + ')' : '')); }
+    else { g.append('line').attr('x1', 0).attr('x2', w).attr('y1', y(t.v)).attr('y2', y(t.v)).style('stroke', 'var(--muted)').attr('stroke-width', 1); g.append('text').attr('x', 6).attr('y', y(t.v) + 13).attr('text-anchor', 'start').attr('class', 'ann-label').style('fill', 'var(--muted)').text(t.label); }
+  }
+  const cx = k => x(k) + x.bandwidth() / 2;
+  const line = d3.line().defined(p => p.v != null && isFinite(p.v)).x(p => cx(p.k)).y(p => y(p.v)).curve(d3.curveMonotoneX);
+  const area = d3.area().defined(p => p.v != null && isFinite(p.v)).x(p => cx(p.k)).y0(h).y1(p => y(p.v)).curve(d3.curveMonotoneX);
+  const rawPts = periods.map(p => ({ k: p.key, v: p.partial ? null : (vByKey.has(p.key) ? vByKey.get(p.key) : null) }));
+  let boldPts;
+  if (gran === 'daily') { g.append('path').attr('d', line(rawPts)).attr('fill', 'none').style('stroke', 'var(--s1-light)').attr('stroke-width', 1.5).attr('stroke-linejoin', 'round'); boldPts = days.map((d, i) => ({ k: d.day, v: roll[i] })); }
+  else boldPts = rawPts;
+  g.append('path').attr('d', area(boldPts)).style('fill', 'var(--s1)').style('opacity', 0.08);
+  g.append('path').attr('d', line(boldPts)).attr('fill', 'none').style('stroke', 'var(--s1)').attr('stroke-width', 2.5).attr('stroke-linejoin', 'round').attr('stroke-linecap', 'round');
+  if (gran !== 'daily') g.append('g').selectAll('circle').data(vals).join('circle').attr('cx', p => cx(p.key)).attr('cy', p => y(p.v)).attr('r', 4.5).style('fill', 'var(--s1)').style('stroke', 'var(--surface)').attr('stroke-width', 2);
+  const lastB = boldPts.filter(p => p.v != null).slice(-1)[0];
+  if (lastB) { g.append('circle').attr('cx', cx(lastB.k)).attr('cy', y(lastB.v)).attr('r', 5).style('fill', 'var(--s1)').style('stroke', 'var(--surface)').attr('stroke-width', 2); g.append('text').attr('x', cx(lastB.k) + 10).attr('y', y(lastB.v) + 4).attr('class', 'ann-label').style('fill', 'var(--ink)').style('font-weight', 650).style('font-size', '12px').text(M.fmt(lastB.v) + ' ' + M.short); g.append('text').attr('x', cx(lastB.k) + 10).attr('y', y(lastB.v) + 17).attr('class', 'ann-label').text(gran === 'daily' ? '7-day average' : 'latest ' + (gran === 'weekly' ? 'week' : 'month')); }
+  // crosshair + tooltip
+  const cross = g.append('line').attr('y1', 0).attr('y2', h).style('stroke', 'var(--ink-2)').style('opacity', 0).style('pointer-events', 'none');
+  const dot = g.append('circle').attr('r', 5).style('fill', 'var(--s1)').style('stroke', 'var(--surface)').attr('stroke-width', 2).style('opacity', 0).style('pointer-events', 'none');
+  svg.append('rect').attr('x', m.l).attr('y', m.t).attr('width', w).attr('height', h).attr('fill', 'transparent').on('pointermove', ev => {
+    const [px] = d3.pointer(ev, g.node()); const i = Math.min(periods.length - 1, Math.max(0, Math.floor(px / x.step()))); const p = periods[i]; if (!p) return;
+    cross.attr('x1', cx(p.key)).attr('x2', cx(p.key)).style('opacity', 1);
+    const bold = boldPts.find(b => b.k === p.key); const bv = bold ? bold.v : null; if (bv != null) dot.attr('cx', cx(p.key)).attr('cy', y(bv)).style('opacity', 1); else dot.style('opacity', 0);
+    const rows = []; const pv = p.partial ? null : vByKey.get(p.key);
+    if (pv != null) rows.push([gran === 'daily' ? 'This day' : 'This ' + (gran === 'weekly' ? 'week' : 'month'), M.fmt(pv) + ' ' + M.short, gran === 'daily' ? 'var(--s1-light)' : 'var(--s1)']); else rows.push(['This day', p.partial ? 'partial day' : 'excluded']);
+    if (gran === 'daily' && bv != null) rows.push(['7-day average', M.fmt(bv) + ' ' + M.short, 'var(--s1)']);
+    if (p.oz != null) { rows.push(['Intake', volText(p.oz) + '/day']); rows.push(['Calories', fmtInt(Math.round(kcalByKey.get(p.key) || 0)) + ' kcal/day at ' + kcalPerOz(p.end) + ' kcal/oz']); }
+    const wv = wByKey.get(p.key); if (wv) rows.push(['Weight used', lbsText(wv)]);
+    rows.push(['Age', ageLabel(p.start)]);
+    for (const gx of allWeighIns().filter(x => x.day >= p.start && x.day <= p.end)) rows.push(['Weigh-in' + (gx.source === 'clinic' ? ' (clinic)' : ''), lbsText(gx.lbs), 'var(--ink-2)']);
+    for (const e of events.filter(e => e.start <= p.end && evEnd(e) >= p.start)) rows.push(['Event', e.name.length > 30 ? e.name.slice(0, 28) + '…' : e.name, catColor(e.category)]);
+    if (pv != null) rows.push([M.assess(pv).charAt(0).toUpperCase() + M.assess(pv).slice(1) + '.']);
+    showTip(ev, gran === 'daily' ? fmtDayY(p.key) : p.label + ' (' + fmtDay(p.start) + ' – ' + fmtDay(p.end) + ')', rows);
+  }).on('pointerleave', () => { cross.style('opacity', 0); dot.style('opacity', 0); hideTip(); });
+  // weigh-in markers (drawn after the overlay so they are hoverable)
+  const [ra, rb] = currentRange(); const gIn = allWeighIns().filter(x => x.day >= ra && x.day <= rb);
+  const wg = svg.append('g').attr('transform', 'translate(' + m.l + ',' + m.t + ')');
+  wg.selectAll('path').data(gIn).join('path').attr('d', x0 => { const xx = xOfDate(x0.day, periods, x, gran); return xx == null ? '' : 'M' + xx + ',' + (h - 1) + 'l-5,9h10z'; }).style('fill', x0 => x0.source === 'clinic' ? 'var(--surface)' : 'var(--ink-2)').style('stroke', 'var(--ink-2)').attr('stroke-width', 1.5).style('cursor', 'default')
+    .on('pointermove', (ev, gx) => showTip(ev, 'Weigh-in, ' + fmtDayY(gx.day), [['Weight', lbsText(gx.lbs)], ['Source', gx.source === 'clinic' ? 'clinic' : 'home (Huckleberry)'], ['Age', ageLabel(gx.day)]])).on('pointerleave', hideTip);
+  // legend + text
+  const lg = $('#heroLegend'); lg.textContent = '';
+  const key = (type, color, label, extra) => { const s = document.createElement('span'); s.className = 'key'; const i = document.createElement('span'); i.className = type; if (color) i.style.background = color; if (extra) Object.assign(i.style, extra); s.appendChild(i); s.appendChild(document.createTextNode(label)); lg.appendChild(s); };
+  if (gran === 'daily') { key('ln', 'var(--s1-light)', 'each day'); key('ln', 'var(--s1)', '7-day average'); } else key('ln', 'var(--s1)', 'average per day in each ' + (gran === 'weekly' ? 'week' : 'month'));
+  for (const t of targets) { if (t.kind === 'band') key('sw', 'var(--s3)', 'estimated needs', { opacity: 0.35 }); else key('ln', 'var(--muted)', t.label.split(' ')[0] === 'prescribed' ? 'prescribed' : t.label.split(',')[0]); }
+  key('tri', null, 'weigh-in (hollow = clinic)');
+  if (state.showEvents) for (const c of CATS) if (events.some(e => e.category === c.id)) key('sw', c.color, c.label);
+  $('#heroTitle').firstChild.textContent = M.title + ' ';
+  $('#heroDesc').textContent = (M.id === 'kcal' ? 'Formula calories each ' : M.id === 'fluid' ? 'Formula volume each ' : 'Bottle ounces each ') + (gran === 'daily' ? 'day' : gran === 'weekly' ? 'week' : 'month') + ' divided by body weight, ' + fmtDayY(ra) + ' to ' + fmtDayY(rb) + '. ' + (M.id === 'kcal' ? 'Formula is counted at ' + settings.kcalBase + ' kcal/oz' + (settings.fortStart ? ' until ' + fmtDay(addDays(settings.fortStart, -1)) + ' and ' + settings.kcalFort + ' kcal/oz from ' + fmtDay(settings.fortStart) + ' (fortification)' : '') + '; calories from solids are not logged and not included. ' : '') + 'Weight is interpolated between weigh-ins (triangles) and held at the last one afterwards. Targets are from the ' + (settings.targetsNote || 'nutrition note') + ' and can be edited in Settings.';
+  makeTable('#heroTable', [{ label: 'Period', get: p => p.label }, { label: 'Age', get: p => ageLabel(p.start) }, { label: 'Full days', get: p => p.n }, { label: 'oz/day', get: p => p.oz, fmt: fmtOz }, { label: 'ml/day', get: p => p.oz != null ? p.oz * ML_OZ : null, fmt: v => fmtInt(Math.round(v)) }, { label: 'kcal/day', get: p => p.n ? kcalByKey.get(p.key) : null, fmt: v => fmtInt(Math.round(v)) }, { label: 'Weight used', get: p => wByKey.get(p.key), fmt: v => lbsText(v) }, { label: 'kcal/kg', get: p => p.n && wByKey.get(p.key) ? mean(byKey.get(p.key).filter(usable).map(MEASURES.kcal.val).filter(v => v != null)) : null, fmt: v => fmtInt(Math.round(v)) }, { label: 'ml/kg', get: p => p.n && wByKey.get(p.key) ? mean(byKey.get(p.key).filter(usable).map(MEASURES.fluid.val).filter(v => v != null)) : null, fmt: v => fmtInt(Math.round(v)) }, { label: 'oz/lb', get: p => p.n && wByKey.get(p.key) ? mean(byKey.get(p.key).filter(usable).map(MEASURES.ozlb.val).filter(v => v != null)) : null, fmt: fmt2 }], periods);
+}
+
+// ---------- growth: WHO weight-for-age (girls) ----------
+const WHO = window.WHO_WFA_GIRLS || [];
+const WHO_PCTS = [{ p: 3, z: -1.8808 }, { p: 15, z: -1.0364 }, { p: 50, z: 0 }, { p: 85, z: 1.0364 }, { p: 97, z: 1.8808 }];
+function lmsAt(ageDays) { const i = Math.round(ageDays); if (!WHO.length || i < 0 || i >= WHO.length) return null; const r = WHO[i]; return { L: r[1], M: r[2], S: r[3] }; }
+function zFor(kg, ageDays) { const p = lmsAt(ageDays); if (!p || !(kg > 0)) return null; return p.L ? (Math.pow(kg / p.M, p.L) - 1) / (p.L * p.S) : Math.log(kg / p.M) / p.S; }
+function kgAtZ(z, ageDays) { const p = lmsAt(ageDays); if (!p) return null; return p.L ? p.M * Math.pow(1 + p.L * p.S * z, 1 / p.L) : p.M * Math.exp(p.S * z); }
+const pctOfZ = z => 100 * normCdf(z);
+const ordinal = n => { n = Math.round(n); const s = ['th', 'st', 'nd', 'rd'], v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); };
+const pctText = p => p < 1 ? '<1st' : p > 99 ? '>99th' : ordinal(p);
+function extraWeighIns() { const out = []; for (const line of String(settings.extraWeights || '').split(/\n+/)) { const m = /^\s*(\d{4}-\d{2}-\d{2})\s+([\d.]+)\s*(kg|lb|lbs)?\s*$/i.exec(line); if (!m) continue; const v = parseFloat(m[2]); const lbs = /lb/i.test(m[3] || '') ? v : v / LB_KG; out.push({ day: m[1], lbs, source: 'clinic' }); } return out; }
+function allWeighIns() { const home = DATA.growth.filter(x => x.lbs != null).map(x => ({ day: x.day, lbs: x.lbs, source: 'home' })); return home.concat(extraWeighIns()).sort((a, b) => a.day < b.day ? -1 : a.day > b.day ? 1 : (a.source === 'clinic' ? 1 : -1)); }
+const kgText = kg => isMetric() ? fmt2(kg) + ' kg' : fmt2(kg / LB_KG) + ' lb';
+function pctMeaning(pt, prevPt) {
+  let s = 'The ' + pctText(pt.pct) + ' percentile means about ' + Math.round(pt.pct) + ' of every 100 girls her age weigh less than she does' + (pt.z != null ? ' (z = ' + d3.format('+.2f')(pt.z) + ')' : '') + '. The 3rd to 97th is the typical range; what clinicians watch most is whether she follows a steady curve over time.';
+  if (prevPt) { const dp = pt.pct - prevPt.pct; const days = diffDays(prevPt.day, pt.day); const gain = (pt.kg - prevPt.kg) * 1000 / Math.max(1, days); s += ' Since the ' + fmtDay(prevPt.day) + ' weigh-in she gained about ' + fmtInt(Math.round(gain)) + ' g/day and ' + (Math.abs(dp) < 3 ? 'held her percentile.' : (dp > 0 ? 'moved up ' : 'drifted down ') + fmtInt(Math.round(Math.abs(dp))) + ' percentile points.'); }
+  return s;
+}
+function renderGrowth() {
+  const host = $('#cardGrowth'); if (!WHO.length) { host.classList.add('hidden'); return; } host.classList.remove('hidden');
+  const birth = birthDay(); const pts = allWeighIns().map(wi => { const kg = wi.lbs * LB_KG, age = diffDays(birth, wi.day); const z = zFor(kg, age); return { day: wi.day, kg, age, source: wi.source, z, pct: z == null ? null : pctOfZ(z), median: kgAtZ(0, age) }; }).filter(p => p.z != null);
+  const latest = pts[pts.length - 1], first = pts[0];
+  // headline
+  const hv = $('#growthValue'); hv.textContent = ''; const hs = $('#growthSub'); hs.textContent = ''; const facts = $('#growthFacts'); facts.textContent = '';
+  const fact = (k, v) => { const r = document.createElement('div'); r.className = 'fact'; const a = document.createElement('span'); a.textContent = k; const b = document.createElement('b'); b.textContent = v; r.append(a, b); facts.appendChild(r); };
+  if (latest) {
+    hv.appendChild(document.createTextNode(pctText(latest.pct))); const sm = document.createElement('small'); sm.textContent = 'percentile'; hv.appendChild(sm);
+    let trend; const dp = latest.pct - first.pct;
+    if (pts.length < 2) trend = ''; else if (Math.abs(dp) <= 10) trend = ' She has tracked close to the same curve since the ' + fmtDay(first.day) + ' weigh-in (' + pctText(first.pct) + ').'; else if (dp < 0) trend = ' She has drifted down from the ' + pctText(first.pct) + ' percentile on ' + fmtDay(first.day) + '. Clinicians usually take a closer look when a baby crosses two major percentile lines downward (for example 50th to 15th).'; else trend = ' She has moved up from the ' + pctText(first.pct) + ' percentile on ' + fmtDay(first.day) + '.';
+    hs.textContent = 'Weight-for-age on the WHO girls standard at the latest weigh-in (' + fmtDayY(latest.day) + ', ' + kgText(latest.kg) + ', z = ' + d3.format('+.2f')(latest.z) + ').' + trend;
+    fact('Latest weight', kgText(latest.kg) + (latest.source === 'clinic' ? ' (clinic)' : ' (home)'));
+    fact('WHO median at that age', kgText(latest.median));
+    if (first !== latest) fact('First weigh-in (' + fmtDay(first.day) + ')', kgText(first.kg) + ', ' + pctText(first.pct));
+    const lo = d3.least(pts, p => p.pct), hi = d3.greatest(pts, p => p.pct); if (lo && hi && lo !== hi) fact('Range so far', pctText(lo.pct) + ' (' + fmtDay(lo.day) + ') to ' + pctText(hi.pct) + ' (' + fmtDay(hi.day) + ')');
+    const span = pts.filter(p => diffDays(p.day, latest.day) >= 21); const ref = span.length ? span[span.length - 1] : null;
+    if (ref && ref !== latest) { const gpd = (latest.kg - ref.kg) * 1000 / diffDays(ref.day, latest.day); fact('Gain, ' + fmtDay(ref.day) + ' → ' + fmtDay(latest.day), fmtInt(Math.round(gpd)) + ' g/day (' + fmtInt(Math.round(gpd * 7)) + ' g/week)'); }
+  } else { hv.textContent = '–'; hs.textContent = 'No weigh-ins yet.'; }
+  // left: weight vs age with WHO curves
+  const wrap = $('#growthChart'); const W = Math.max(320, wrap.clientWidth || 600), H = 340, m = { t: 14, r: 48, b: 40, l: 46 }, w = W - m.l - m.r, h = H - m.t - m.b;
+  const svg = svgIn(wrap, W, H); const g = svg.append('g').attr('transform', 'translate(' + m.l + ',' + m.t + ')');
+  const maxAge = Math.min(WHO.length - 1, Math.max(120, (latest ? latest.age : 0) + 45)); const x = d3.scaleLinear().domain([0, maxAge]).range([0, w]);
+  const kgY = kg => isMetric() ? kg : kg / LB_KG;
+  const ymaxKg = Math.max(kgAtZ(1.8808, maxAge) || 10, d3.max(pts, p => p.kg) || 0) * 1.04; const y = d3.scaleLinear().domain([0, kgY(ymaxKg)]).nice().range([h, 0]);
+  yAxisLeft(g, y, w, 5, v => v + (isMetric() ? ' kg' : ' lb'));
+  const months = d3.range(0, Math.floor(maxAge / 30.44) + 1); g.append('g').attr('class', 'axis').attr('transform', 'translate(0,' + h + ')').call(d3.axisBottom(x).tickValues(months.map(mo => mo * 30.44)).tickSize(0).tickPadding(8).tickFormat((d, i) => months[i] + (months[i] === 0 ? ' mo' : ''))).call(s => s.select('.domain').remove());
+  g.append('line').attr('x1', 0).attr('x2', w).attr('y1', h).attr('y2', h).style('stroke', 'var(--axis)');
+  const ages = d3.range(0, maxAge + 1, 2); const curve = z => d3.line().x(a => x(a)).y(a => y(kgY(kgAtZ(z, a)))).curve(d3.curveBasis)(ages);
+  const band = (z1, z2) => d3.area().x(a => x(a)).y0(a => y(kgY(kgAtZ(z1, a)))).y1(a => y(kgY(kgAtZ(z2, a)))).curve(d3.curveBasis)(ages);
+  g.append('path').attr('d', band(-1.8808, 1.8808)).style('fill', 'var(--s1)').style('opacity', 0.06); g.append('path').attr('d', band(-1.0364, 1.0364)).style('fill', 'var(--s1)').style('opacity', 0.08);
+  for (const q of WHO_PCTS) { g.append('path').attr('d', curve(q.z)).attr('fill', 'none').style('stroke', q.p === 50 ? 'var(--ink-2)' : 'var(--muted)').attr('stroke-width', q.p === 50 ? 1.5 : 1).style('opacity', q.p === 50 ? 0.9 : 0.7); g.append('text').attr('x', w + 5).attr('y', y(kgY(kgAtZ(q.z, maxAge))) + 4).attr('class', 'ann-label').style('fill', 'var(--muted)').text(ordinal(q.p)); }
+  const hline = d3.line().x(p => x(p.age)).y(p => y(kgY(p.kg)));
+  g.append('path').attr('d', hline(pts)).attr('fill', 'none').style('stroke', 'var(--s1)').attr('stroke-width', 2.5).attr('stroke-linejoin', 'round');
+  g.append('g').selectAll('circle').data(pts).join('circle').attr('cx', p => x(p.age)).attr('cy', p => y(kgY(p.kg))).attr('r', 5).style('fill', p => p.source === 'clinic' ? 'var(--surface)' : 'var(--s1)').style('stroke', p => p.source === 'clinic' ? 'var(--s1)' : 'var(--surface)').attr('stroke-width', 2.5);
+  if (latest) g.append('text').attr('x', x(latest.age) + 12).attr('y', y(kgY(latest.kg)) + 16).attr('class', 'ann-label').style('fill', 'var(--ink)').style('font-weight', 650).style('font-size', '12px').text(pctText(latest.pct) + ' pct');
+  const tipRows = p => { const i = pts.indexOf(p); const prev = i > 0 ? pts[i - 1] : null; return [['Weight', kgText(p.kg), 'var(--s1)'], ['Age', ageLabel(p.day)], ['Percentile', pctText(p.pct)], ['z-score', d3.format('+.2f')(p.z)], ['WHO median at this age', kgText(p.median)], ['Source', p.source === 'clinic' ? 'clinic scale' : 'home (Huckleberry)'], [pctMeaning(p, prev)]]; };
+  if (pts.length) { const del = d3.Delaunay.from(pts, p => x(p.age), p => y(kgY(p.kg))); const hl = g.append('circle').attr('r', 8).style('fill', 'none').style('stroke', 'var(--ink)').attr('stroke-width', 2).style('opacity', 0).style('pointer-events', 'none');
+    svg.append('rect').attr('x', m.l).attr('y', m.t).attr('width', w).attr('height', h).attr('fill', 'transparent').on('pointermove', ev => { const [px, py] = d3.pointer(ev, g.node()); const p = pts[del.find(px, py)]; if (!p) return; hl.attr('cx', x(p.age)).attr('cy', y(kgY(p.kg))).style('opacity', 1); showTip(ev, 'Weigh-in, ' + fmtDayY(p.day), tipRows(p)); }).on('pointerleave', () => { hl.style('opacity', 0); hideTip(); }); }
+  // right: percentile over time
+  const wrap2 = $('#pctChart'); const W2 = Math.max(260, wrap2.clientWidth || 360), m2 = { t: 14, r: 16, b: 40, l: 40 }, w2 = W2 - m2.l - m2.r, h2 = H - m2.t - m2.b;
+  const svg2 = svgIn(wrap2, W2, H); const g2 = svg2.append('g').attr('transform', 'translate(' + m2.l + ',' + m2.t + ')');
+  const x2 = d3.scaleTime().domain(pts.length ? [fromKey(pts[0].day), d3.timeDay.offset(fromKey(latest.day), 14)] : [new Date(), new Date()]).range([0, w2]); const y2 = d3.scaleLinear().domain([0, 100]).range([h2, 0]);
+  g2.append('rect').attr('x', 0).attr('width', w2).attr('y', y2(97)).attr('height', y2(3) - y2(97)).style('fill', 'var(--s1)').style('opacity', 0.06); g2.append('rect').attr('x', 0).attr('width', w2).attr('y', y2(85)).attr('height', y2(15) - y2(85)).style('fill', 'var(--s1)').style('opacity', 0.08);
+  for (const q of WHO_PCTS) { g2.append('line').attr('x1', 0).attr('x2', w2).attr('y1', y2(q.p)).attr('y2', y2(q.p)).style('stroke', q.p === 50 ? 'var(--ink-2)' : 'var(--muted)').attr('stroke-width', q.p === 50 ? 1.5 : 1).style('opacity', 0.7); }
+  g2.append('g').attr('class', 'axis').call(d3.axisLeft(y2).tickValues([3, 15, 50, 85, 97]).tickSize(0).tickPadding(6).tickFormat(ordinal)).call(s => s.select('.domain').remove());
+  g2.append('g').attr('class', 'axis').attr('transform', 'translate(0,' + h2 + ')').call(d3.axisBottom(x2).ticks(5).tickSize(0).tickPadding(8).tickFormat(d3.timeFormat('%b'))).call(s => s.select('.domain').remove());
+  g2.append('line').attr('x1', 0).attr('x2', w2).attr('y1', h2).attr('y2', h2).style('stroke', 'var(--axis)');
+  const pline = d3.line().x(p => x2(fromKey(p.day))).y(p => y2(p.pct)).curve(d3.curveMonotoneX);
+  g2.append('path').attr('d', pline(pts)).attr('fill', 'none').style('stroke', 'var(--s1)').attr('stroke-width', 2.5).attr('stroke-linejoin', 'round');
+  g2.append('g').selectAll('circle').data(pts).join('circle').attr('cx', p => x2(fromKey(p.day))).attr('cy', p => y2(p.pct)).attr('r', 5).style('fill', p => p.source === 'clinic' ? 'var(--surface)' : 'var(--s1)').style('stroke', p => p.source === 'clinic' ? 'var(--s1)' : 'var(--surface)').attr('stroke-width', 2.5);
+  if (pts.length) { const del2 = d3.Delaunay.from(pts, p => x2(fromKey(p.day)), p => y2(p.pct)); const hl2 = g2.append('circle').attr('r', 8).style('fill', 'none').style('stroke', 'var(--ink)').attr('stroke-width', 2).style('opacity', 0).style('pointer-events', 'none');
+    svg2.append('rect').attr('x', m2.l).attr('y', m2.t).attr('width', w2).attr('height', h2).attr('fill', 'transparent').on('pointermove', ev => { const [px, py] = d3.pointer(ev, g2.node()); const p = pts[del2.find(px, py)]; if (!p) return; hl2.attr('cx', x2(fromKey(p.day))).attr('cy', y2(p.pct)).style('opacity', 1); showTip(ev, 'Weigh-in, ' + fmtDayY(p.day), tipRows(p)); }).on('pointerleave', () => { hl2.style('opacity', 0); hideTip(); }); }
+  g2.append('text').attr('x', 4).attr('y', 12).attr('class', 'ann-label').style('fill', 'var(--muted)').text('her percentile over time');
+  // legend, text, table
+  const lg = $('#growthLegend'); lg.textContent = '';
+  const key = (type, color, label, extra) => { const s = document.createElement('span'); s.className = 'key'; const i = document.createElement('span'); i.className = type; if (color) i.style.background = color; if (extra) Object.assign(i.style, extra); s.appendChild(i); s.appendChild(document.createTextNode(label)); lg.appendChild(s); };
+  key('sw', 'var(--s1)', 'home weigh-in', { borderRadius: '50%' }); key('sw', 'var(--surface)', 'clinic weigh-in', { borderRadius: '50%', border: '2px solid var(--s1)' }); key('ln', 'var(--ink-2)', 'WHO 50th percentile'); key('sw', 'var(--s1)', '15th–85th', { opacity: 0.25 }); key('sw', 'var(--s1)', '3rd–97th', { opacity: 0.14 });
+  $('#growthDesc').textContent = 'Every weigh-in on record (all dates, regardless of the range filter) plotted against the WHO Child Growth Standards for girls, which describe how healthy breastfed infants grow. Home weights are from the Huckleberry log; clinic weights are entered in Settings. Home and clinic scales can differ by a few ounces, so compare like with like when reading small changes.';
+  makeTable('#growthTable', [{ label: 'Date', get: p => fmtDayY(p.day) }, { label: 'Age', get: p => ageLabel(p.day) }, { label: 'Weight', get: p => p.kg, fmt: v => kgText(v) }, { label: 'Source', get: p => p.source }, { label: 'Percentile', get: p => p.pct, fmt: v => pctText(v) }, { label: 'z-score', get: p => p.z, fmt: d3.format('+.2f') }, { label: 'WHO median', get: p => p.median, fmt: v => kgText(v) }], pts);
+}
+
+// ---------- orchestration ----------
+function renderAll() {
+  const days = filteredDays(); renderHeader(); $('#btnResetCsv').classList.toggle('hidden', !localStorage.getItem(LS.csv));
+  if (!days.length) { $('#kpis').textContent = ''; $('#intakeChart').textContent = 'No days in range.'; return; }
+  renderHero(days); renderGrowth(); renderKpis(days); const periods = renderIntake(days); renderSmallMultiples(days, periods); renderHeat(days); renderFeedSize(days); renderLag(days); renderEvents();
+}
+// ---------- data source: plain bundle, encrypted bundle, or a CSV loaded in this browser ----------
+let BASE_RAW = null, BUNDLED_EVENTS = null;
+const PASS_KEY = 'feeding-dash-pass';
+async function decryptBundle(enc, pass) {
+  const te = new TextEncoder(); const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+  const keyMat = await crypto.subtle.importKey('raw', te.encode(pass), 'PBKDF2', false, ['deriveKey']);
+  const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: b64(enc.salt), iterations: enc.iter, hash: 'SHA-256' }, keyMat, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+  const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(enc.iv) }, key, b64(enc.ct));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+function showGate(msg) { $('#gateTitle').textContent = 'Feeding dashboard'; $('#gateErr').textContent = msg || ''; $('#gate').classList.remove('hidden'); document.body.classList.add('locked'); setTimeout(() => $('#gatePass').focus(), 50); }
+function hideGate() { $('#gate').classList.add('hidden'); document.body.classList.remove('locked'); }
+async function unlock(pass, remember) {
+  const bundle = await decryptBundle(window.HUCKLEBERRY_ENC, pass);
+  BASE_RAW = bundle.rows; BUNDLED_EVENTS = bundle.events || null; BUNDLED_PROFILE = bundle.profile || null; applySettings(); if (remember) sessionStorage.setItem(PASS_KEY, pass);
+  hideGate(); $('#btnLock').classList.remove('hidden'); init();
+}
+async function boot() {
+  if (window.HUCKLEBERRY_ROWS) { BASE_RAW = window.HUCKLEBERRY_ROWS; BUNDLED_EVENTS = window.HUCKLEBERRY_EVENTS || null; BUNDLED_PROFILE = window.HUCKLEBERRY_PROFILE || null; applySettings(); init(); return; }
+  if (window.HUCKLEBERRY_ENC) {
+    if (!crypto.subtle) { showGate('This browser cannot decrypt the page (it needs a secure https connection).'); return; }
+    const saved = sessionStorage.getItem(PASS_KEY);
+    if (saved) { try { await unlock(saved, false); return; } catch (e) { sessionStorage.removeItem(PASS_KEY); } }
+    showGate(); return;
+  }
+  showGate('No data file was found next to this page. Run build_data.py or publish.sh first.'); $('#gateForm').classList.add('hidden');
+}
+$('#gateForm').addEventListener('submit', async e => {
+  e.preventDefault(); const pass = $('#gatePass').value; const btn = $('#gateBtn'); btn.disabled = true; btn.textContent = 'Unlocking…'; $('#gateErr').textContent = '';
+  try { await unlock(pass, true); } catch (err) { $('#gateErr').textContent = 'That passphrase did not work. Check it and try again.'; $('#gatePass').select(); }
+  btn.disabled = false; btn.textContent = 'Unlock';
+});
+function init() {
+  const storedCsv = localStorage.getItem(LS.csv); RAW = storedCsv ? d3.csvParse(storedCsv) : BASE_RAW;
+  DATA = parseRows(RAW); Object.assign(DATA, buildDays(DATA)); loadEvents(); seedKnownEvents();
+  for (const id of ['fromDate', 'toDate', 'evStart', 'evEnd']) { $('#' + id).min = DATA.first; }
+  $('#fromDate').value = DATA.analysisStart; $('#toDate').value = DATA.last; if (!state.from) { state.from = DATA.analysisStart; state.to = DATA.last; }
+  renderAll();
+}
+// controls
+$('#rangeSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; $$('#rangeSeg button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); state.range = b.dataset.range; $('#customRange').classList.toggle('show', state.range === 'custom'); if (state.range === 'custom') { state.from = $('#fromDate').value; state.to = $('#toDate').value; } renderAll(); });
+$('#fromDate').addEventListener('change', e => { state.from = e.target.value; renderAll(); }); $('#toDate').addEventListener('change', e => { state.to = e.target.value; renderAll(); });
+$('#granSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; $$('#granSeg button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); state.gran = b.dataset.gran; renderAll(); });
+$('#winSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; $$('#winSeg button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); state.win = +b.dataset.win; renderEvents(); });
+$('#excludeIll').addEventListener('change', e => { state.excludeIll = e.target.checked; renderAll(); });
+$('#showEvents').addEventListener('change', e => { state.showEvents = e.target.checked; renderAll(); });
+$('#unitSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; $$('#unitSeg button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); state.measure = b.dataset.measure; state.units = state.measure === 'ozlb' ? 'imperial' : 'metric'; localStorage.setItem('feeding-dash-measure', state.measure); renderAll(); });
+$$('#unitSeg button').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.measure === state.measure)));
+document.addEventListener('click', e => {
+  const b = e.target.closest('button[data-table]'); if (!b) return; const id = b.dataset.table;
+  const map = { hero: ['#heroChart', '#heroTable', '#heroLegend'], growth: ['#growthCharts', '#growthTable', '#growthLegend'], intake: ['#intakeChart', '#intakeTable', '#intakeLegend'], sm: ['#smCharts', '#smTable'], heat: ['#heatChart', '#heatTable'], feedsize: ['#feedSizeChart', '#feedSizeTable'], lag: [null, '#lagTable'] }[id];
+  const nowShowingTable = $(map[1]).classList.toggle('hidden') === false;
+  if (map[0]) $(map[0]).classList.toggle('hidden', nowShowingTable); if (map[2]) $(map[2]).classList.toggle('hidden', nowShowingTable);
+  b.textContent = nowShowingTable ? (map[0] ? 'Chart' : 'Hide table') : 'Table';
+});
+$('#eventForm').addEventListener('submit', e => {
+  e.preventDefault(); const f = e.target; const start = $('#evStart').value; let end = $('#evEnd').value || null; if (!start) return; if (end && end <= start) end = null;
+  const ev = { id: f.dataset.editing || crypto.randomUUID(), name: $('#evName').value.trim(), category: $('#evCat').value, start, end, notes: $('#evNotes').value.trim() };
+  if (f.dataset.editing) events = events.map(x => x.id === ev.id ? ev : x); else events.push(ev);
+  saveEvents(); resetEventForm(); renderAll();
+});
+$('#btnExportEvents').addEventListener('click', () => { const blob = new Blob([JSON.stringify(events, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'events.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); });
+$('#btnImportEvents').addEventListener('click', () => $('#fileEvents').click());
+$('#fileEvents').addEventListener('change', async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try { const arr = JSON.parse(await f.text()); if (!Array.isArray(arr)) throw new Error('not a list of events');
+    const clean = arr.filter(x => x && x.start && x.name).map(x => ({ id: String(x.id || crypto.randomUUID()), name: String(x.name), category: CATS.some(c => c.id === x.category) ? x.category : 'other', start: String(x.start).slice(0, 10), end: x.end ? String(x.end).slice(0, 10) : null, notes: x.notes ? String(x.notes) : '' }));
+    const byId = new Map(events.map(x => [x.id, x])); for (const c of clean) byId.set(c.id, c); events = Array.from(byId.values()); saveEvents(); renderAll();
+  } catch (err) { $('#eventList').textContent = 'Could not read that file: ' + err.message; }
+  e.target.value = '';
+});
+$('#btnLoadCsv').addEventListener('click', () => $('#fileCsv').click());
+$('#fileCsv').addEventListener('change', async e => {
+  const f = e.target.files[0]; if (!f) return; const text = await f.text(); const rows = d3.csvParse(text);
+  if (!rows.columns || !rows.columns.includes('Type') || !rows.columns.includes('Start')) { $('#dataRange').textContent = 'That file does not look like a Huckleberry export (it needs Type and Start columns).'; return; }
+  localStorage.setItem(LS.csv, text); init(); e.target.value = '';
+});
+$('#btnResetCsv').addEventListener('click', () => { localStorage.removeItem(LS.csv); init(); });
+$('#btnPrint').addEventListener('click', () => window.print());
+let themeBeforePrint = null; window.addEventListener('beforeprint', () => { themeBeforePrint = document.documentElement.dataset.theme || ''; document.documentElement.dataset.theme = 'light'; renderAll(); }); window.addEventListener('afterprint', () => { if (themeBeforePrint) document.documentElement.dataset.theme = themeBeforePrint; else delete document.documentElement.dataset.theme; renderAll(); });
+const SET_FIELDS = { name: 'setName', birth: 'setBirth', kcalBase: 'setKcalBase', kcalFort: 'setKcalFort', fortStart: 'setFortStart', needsKcalLow: 'setNeedsKcalLow', needsKcalHigh: 'setNeedsKcalHigh', prescribedKcal: 'setPrescribedKcal', needsFluid: 'setNeedsFluid', prescribedFluid: 'setPrescribedFluid', targetsNote: 'setTargetsNote', extraWeights: 'setExtraWeights' };
+$('#btnSettings').addEventListener('click', () => { for (const [k, id] of Object.entries(SET_FIELDS)) $('#' + id).value = settings[k] == null ? '' : settings[k]; $('#settingsDlg').showModal(); });
+$('#settingsDlg').addEventListener('close', () => { if ($('#settingsDlg').returnValue !== 'ok') return; for (const [k, id] of Object.entries(SET_FIELDS)) { const el = $('#' + id); settings[k] = el.type === 'number' ? (el.value === '' ? null : +el.value) : (el.value.trim() || null); } localStorage.setItem(LS.settings, JSON.stringify(settings)); applySettings(); init(); });
+$('#btnTheme').addEventListener('click', () => { const cur = document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); const next = cur === 'dark' ? 'light' : 'dark'; document.documentElement.dataset.theme = next; localStorage.setItem(LS.theme, next); });
+const savedTheme = localStorage.getItem(LS.theme); if (savedTheme) document.documentElement.dataset.theme = savedTheme;
+let rt; window.addEventListener('resize', () => { if (DATA) { clearTimeout(rt); rt = setTimeout(renderAll, 150); } });
+$('#btnLock').addEventListener('click', () => { sessionStorage.removeItem(PASS_KEY); location.reload(); });
+$('#btnResetEvents').addEventListener('click', () => { localStorage.removeItem(LS.events); loadEvents(); renderAll(); });
+boot();
+})();
+</script>
+</body>
+</html>
