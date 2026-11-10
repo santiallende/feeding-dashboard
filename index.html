@@ -51,12 +51,12 @@
 }
 * { box-sizing: border-box; }
 html { background: var(--page); }
-body { margin: 0; background: var(--glow), var(--page); color: var(--ink); font: 14px/1.5 -apple-system, "SF Pro Text", Inter, system-ui, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+body { margin: 0; background: var(--glow), var(--page); color: var(--ink); font: 15.5px/1.55 -apple-system, "SF Pro Text", Inter, system-ui, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
 a { color: inherit; }
-.wrap { max-width: 1320px; margin: 0 auto; padding: 28px 28px 72px; }
+.wrap { max-width: 1360px; margin: 0 auto; padding: 32px 32px 80px; }
 header.top { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
 header.top h1 { font-size: 30px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 4px; line-height: 1.1; }
-header.top .sub { color: var(--ink-2); font-size: 13.5px; max-width: 820px; }
+header.top .sub { color: var(--ink-2); font-size: 14.5px; max-width: 860px; }
 .eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); }
 .toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 button, select, input[type=text], input[type=date], input[type=number], textarea {
@@ -69,7 +69,7 @@ button.primary { background: var(--s1); color: #fff; border-color: transparent; 
 button.primary:hover { filter: brightness(1.08); background: var(--s1); }
 button.ghost { border-color: transparent; color: var(--ink-2); background: transparent; }
 button.danger { color: var(--bad-text); }
-.filters { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; padding: 10px 14px; background: color-mix(in srgb, var(--surface) 86%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid var(--border); border-radius: 14px; margin: 12px 0 20px; position: sticky; top: 10px; z-index: 5; box-shadow: var(--shadow); }
+.filters { display: flex; gap: 18px; font-size: 14.5px; align-items: center; flex-wrap: wrap; padding: 10px 14px; background: color-mix(in srgb, var(--surface) 86%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid var(--border); border-radius: 14px; margin: 12px 0 20px; position: sticky; top: 10px; z-index: 5; box-shadow: var(--shadow); }
 .filters .group { display: flex; align-items: center; gap: 6px; }
 .filters .group label.title { color: var(--muted); font-size: 11px; font-weight: 600; margin-right: 2px; text-transform: uppercase; letter-spacing: .08em; }
 .seg { display: inline-flex; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--control-bg); }
@@ -80,49 +80,50 @@ button.danger { color: var(--bad-text); }
 .filters .custom.show { display: flex; }
 .check { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
 .check input { accent-color: var(--s1); }
-.grid { display: grid; gap: 18px; grid-template-columns: repeat(12, 1fr); }
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 20px 22px; grid-column: span 12; min-width: 0; box-shadow: var(--shadow); }
-.card h2 { font-size: 16px; font-weight: 650; letter-spacing: -0.01em; margin: 0 0 2px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.grid { display: grid; gap: 28px; grid-template-columns: repeat(12, 1fr); }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 26px 28px 28px; grid-column: span 12; min-width: 0; box-shadow: var(--shadow); margin-bottom: 28px; }
+.grid .card { margin-bottom: 0; }
+.card h2 { font-size: 19px; font-weight: 650; letter-spacing: -0.01em; margin: 0 0 2px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .card h2 .tools { display: inline-flex; gap: 6px; }
 .card h2 .tools button { padding: 3px 10px; font-size: 12px; border-radius: 8px; }
-.card .desc { color: var(--ink-2); font-size: 13px; margin: 0 0 12px; max-width: 980px; }
+.card .desc { color: var(--ink-2); font-size: 14.5px; margin: 4px 0 16px; max-width: 1000px; }
 .card.span6 { grid-column: span 6; }
 @media (max-width: 980px) { .card.span6 { grid-column: span 12; } }
 /* hero */
 .hero { padding: 22px 24px 18px; }
-.hero-grid { display: grid; grid-template-columns: minmax(230px, 290px) 1fr; gap: 26px; align-items: start; }
+.hero-grid { display: grid; grid-template-columns: minmax(240px, 310px) 1fr; gap: 34px; align-items: start; }
 @media (max-width: 900px) { .hero-grid { grid-template-columns: 1fr; } }
 .hero-side .eyebrow { margin-bottom: 8px; }
 .hero-value { font-size: 58px; font-weight: 700; letter-spacing: -0.035em; line-height: 1; margin: 2px 0 6px; }
 .hero-value small { font-size: 18px; font-weight: 500; letter-spacing: 0; color: var(--ink-2); margin-left: 6px; }
-.hero-sub { color: var(--ink-2); font-size: 13.5px; margin-bottom: 14px; }
+.hero-sub { color: var(--ink-2); font-size: 14.5px; margin-bottom: 16px; }
 .hero-sub .up { color: var(--good-text); font-weight: 600; } .hero-sub .down { color: var(--bad-text); font-weight: 600; }
 .hero-facts { display: grid; grid-template-columns: 1fr; gap: 0; border-top: 1px solid var(--grid); }
-.hero-facts .fact { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--grid); font-size: 13px; }
+.hero-facts .fact { display: flex; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--grid); font-size: 14px; }
 .hero-facts .fact span:first-child { color: var(--ink-2); }
 .hero-facts .fact b { font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
 .hero-main { min-width: 0; }
-.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin: 18px 0; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 18px; margin: 0 0 28px; }
 .tile { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 14px 16px; box-shadow: var(--shadow); }
-.tile .label { color: var(--ink-2); font-size: 12.5px; }
+.tile .label { color: var(--ink-2); font-size: 13.5px; }
 .tile .value { font-size: 30px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; margin-top: 4px; }
 .tile .value small { font-size: 14px; font-weight: 500; letter-spacing: 0; color: var(--ink-2); margin-left: 3px; }
-.tile .delta { font-size: 12.5px; color: var(--ink-2); margin-top: 4px; }
+.tile .delta { font-size: 13.5px; color: var(--ink-2); margin-top: 4px; }
 .tile .delta .up { color: var(--good-text); } .tile .delta .down { color: var(--bad-text); }
 .tile svg { display: block; margin-top: 8px; }
 .chart { position: relative; width: 100%; }
 .chart svg { display: block; width: 100%; height: auto; overflow: visible; }
 .chart svg text { font-family: inherit; }
-.axis text { fill: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+.axis text { fill: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
 .axis .age { fill: var(--muted); font-size: 10px; }
 .axis line, .axis path { stroke: var(--axis); }
 .gridline { stroke: var(--grid); stroke-width: 1; shape-rendering: crispEdges; }
-.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12.5px; color: var(--ink-2); margin: 6px 0 6px; }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13.5px; color: var(--ink-2); margin: 8px 0 10px; }
 .legend .key { display: inline-flex; align-items: center; gap: 6px; }
 .legend .sw { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
 .legend .ln { width: 16px; height: 2px; border-radius: 1px; display: inline-block; }
 .legend .tri { width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 9px solid var(--ink-2); display: inline-block; }
-.tooltip { position: fixed; pointer-events: none; z-index: 50; background: var(--surface); color: var(--ink); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.16); padding: 9px 11px; font-size: 12.5px; min-width: 160px; display: none; }
+.tooltip { position: fixed; pointer-events: none; z-index: 50; background: var(--surface); color: var(--ink); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.16); padding: 10px 12px; font-size: 13.5px; min-width: 170px; display: none; }
 .tooltip .tt-title { color: var(--ink-2); margin-bottom: 5px; font-weight: 600; }
 .tooltip .row { display: flex; justify-content: space-between; gap: 14px; align-items: center; line-height: 1.6; }
 .tooltip .row .k { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); }
@@ -138,7 +139,7 @@ details[open].howto summary::before { transform: rotate(90deg); }
 details.howto dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; margin: 10px 0 0; max-width: 980px; }
 details.howto dt { font-weight: 600; color: var(--ink); }
 details.howto dd { margin: 0; }
-table.data { width: 100%; border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+table.data { width: 100%; border-collapse: collapse; font-size: 13.5px; font-variant-numeric: tabular-nums; }
 table.data th, table.data td { padding: 6px 8px; border-bottom: 1px solid var(--grid); text-align: right; white-space: nowrap; }
 table.data th:first-child, table.data td:first-child { text-align: left; }
 table.data th { color: var(--ink-2); font-weight: 600; position: sticky; top: 0; background: var(--surface); }
@@ -154,24 +155,24 @@ table.data th { color: var(--ink-2); font-weight: 600; position: sticky; top: 0;
 .event-row .name { font-weight: 600; }
 .event-row .meta { color: var(--ink-2); font-size: 12.5px; flex: 1; }
 .event-row button { padding: 2px 9px; font-size: 12px; border-radius: 8px; }
-.callout { background: var(--selected); border-radius: 12px; padding: 12px 14px; margin: 8px 0 14px; font-size: 13.5px; line-height: 1.55; }
+.callout { background: var(--selected); border-radius: 12px; padding: 14px 16px; margin: 8px 0 16px; font-size: 15px; line-height: 1.6; }
 .callout b { font-weight: 650; }
 .stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 12px; }
 .stat-row .tile { padding: 12px 14px; box-shadow: none; }
 .stat-row .tile .value { font-size: 24px; }
-.note { color: var(--muted); font-size: 12px; margin-top: 10px; line-height: 1.5; }
-.ann-label { font-size: 11px; fill: var(--ink-2); }
+.note { color: var(--muted); font-size: 13px; margin-top: 12px; line-height: 1.55; }
+.ann-label { font-size: 12px; fill: var(--ink-2); }
 .cell:hover, .bar:hover { filter: brightness(1.12); }
 dialog { border: 1px solid var(--border); border-radius: 16px; background: var(--surface); color: var(--ink); padding: 20px 22px; max-width: 520px; box-shadow: var(--shadow); }
 dialog::backdrop { background: rgba(0,0,0,.4); }
 dialog label { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; font-size: 13px; color: var(--ink-2); }
-.small-multiples { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
-.sm h3 { font-size: 13px; font-weight: 600; margin: 0 0 2px; color: var(--ink); }
-.sm .cur { font-size: 12px; color: var(--ink-2); margin-bottom: 4px; }
+.small-multiples { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 22px 24px; }
+.sm h3 { font-size: 14.5px; font-weight: 600; margin: 0 0 2px; color: var(--ink); }
+.sm .cur { font-size: 13px; color: var(--ink-2); margin-bottom: 6px; }
 .pill { display: inline-block; font-size: 11.5px; font-weight: 500; letter-spacing: 0; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--border); color: var(--ink-2); margin-left: 8px; vertical-align: middle; background: var(--control-bg); }
 .subcard { border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; min-width: 0; }
 .subcard h3 { font-size: 13.5px; font-weight: 600; margin: 0 0 4px; }
-.two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
 @media (max-width: 980px) { .two { grid-template-columns: 1fr; } }
 .set-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; }
 .set-grid.three { grid-template-columns: 1fr 1fr 1fr; }
@@ -181,20 +182,40 @@ dialog textarea { font: inherit; color: var(--ink); background: var(--control-bg
 dialog code { font-size: 12px; }
 .growth-two { grid-template-columns: 1.6fr 1fr; }
 @media (max-width: 980px) { .growth-two { grid-template-columns: 1fr; } }
-.flags { display: flex; flex-direction: column; gap: 6px; margin: 0 0 16px; }
+.flags { display: flex; flex-direction: column; gap: 8px; margin: 0 0 28px; }
 .flags.quiet { color: var(--muted); font-size: 12.5px; padding: 0 4px; }
-.flag { padding: 9px 12px; border-radius: 10px; font-size: 13px; border: 1px solid var(--border); background: var(--surface); }
+.flag { padding: 11px 14px; border-radius: 12px; font-size: 14.5px; border: 1px solid var(--border); background: var(--surface); }
 .flag.warn { border-color: color-mix(in srgb, var(--s4) 50%, transparent); background: color-mix(in srgb, var(--s4) 12%, var(--surface)); }
 .flag.info { color: var(--ink-2); }
-.summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px 16px; }
-.sum .label { color: var(--ink-2); font-size: 12px; }
-.sum .val { font-size: 18px; font-weight: 650; letter-spacing: -0.01em; margin-top: 2px; }
-.sum .sub { color: var(--muted); font-size: 12px; margin-top: 1px; }
-ul.plain { margin: 6px 0 0; padding-left: 18px; font-size: 13px; color: var(--ink-2); }
-ul.plain li { margin-bottom: 3px; }
-.notes p { margin: 6px 0; font-size: 13.5px; max-width: 980px; }
-.chart-h { font-size: 13px; font-weight: 600; margin: 0 0 4px; }
-.zrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-top: 12px; }
+ul.plain { margin: 6px 0 0; padding-left: 18px; font-size: 14px; color: var(--ink-2); line-height: 1.5; }
+ul.plain li { margin-bottom: 5px; } ul.plain b { color: var(--ink); font-weight: 600; }
+.notes p { margin: 8px 0; font-size: 15px; max-width: 1000px; line-height: 1.6; }
+/* clinic summary */
+.card.summary { padding-top: 24px; }
+.sum-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--grid); }
+.sum-head h2 { font-size: 24px; letter-spacing: -0.02em; }
+.sum-meta { color: var(--ink-2); font-size: 14px; margin-top: 4px; }
+.sum-section { padding: 18px 0 6px; border-bottom: 1px solid var(--grid); }
+.sum-section:last-child { border-bottom: 0; }
+.sum-section-title { font-size: 12px; font-weight: 650; letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+.sum-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px 22px; padding-bottom: 10px; }
+.sstat .label { color: var(--ink-2); font-size: 13.5px; }
+.sstat .val { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; margin: 2px 0 6px; }
+.sstat .sub { color: var(--muted); font-size: 13px; margin-top: 6px; }
+.pills { display: flex; gap: 6px; flex-wrap: wrap; }
+.zpill { display: inline-block; font-size: 12.5px; font-weight: 600; padding: 2px 9px; border-radius: 999px; background: var(--control-hover); color: var(--ink); font-variant-numeric: tabular-nums; }
+.zpill.ok { background: color-mix(in srgb, var(--s1) 16%, transparent); } .zpill.warn { background: color-mix(in srgb, var(--s4) 24%, transparent); } .zpill.bad { background: color-mix(in srgb, var(--div-neg) 18%, transparent); }
+.sum-table table.data td, .sum-table table.data th { padding: 8px 10px; font-size: 14px; }
+.sum-table table.data td.under, .sum-table table.data td.over { color: var(--bad-text); font-weight: 600; }
+.sum-table table.data tr.muted td { color: var(--ink-2); font-weight: 400; } .sum-table table.data td.span { white-space: normal; text-align: left; }
+.sum-foot { color: var(--muted); font-size: 13px; margin: 8px 0 6px; line-height: 1.5; max-width: 1000px; }
+.sum-two { display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px; }
+@media (max-width: 980px) { .sum-two { grid-template-columns: 1fr; } }
+.sum-kv .kv { display: flex; justify-content: space-between; gap: 14px; padding: 7px 0; border-bottom: 1px solid var(--grid); font-size: 14px; }
+.sum-kv .kv:last-child { border-bottom: 0; } .sum-kv .kv.long { flex-direction: column; gap: 2px; } .sum-kv .kv.long b { text-align: left; font-weight: 500; } .sum-kv .kv span { color: var(--ink-2); } .sum-kv .kv b { font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; } .sum-kv .kv b.under { color: var(--bad-text); }
+@media print { .card.summary { font-size: 12.5px; } .sstat .val { font-size: 20px; } .sum-section { padding: 10px 0 4px; } }
+.chart-h { font-size: 14.5px; font-weight: 600; margin: 0 0 6px; }
+.zrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 22px 24px; margin-top: 20px; }
 @media print { body.print-summary .card:not(#cardSummary), body.print-summary .kpis, body.print-summary .flags, body.print-summary .grid { display: none !important; } body.print-summary #cardSummary { display: block !important; } }
 .obs-form fieldset { border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px 12px; margin: 0; min-width: 0; }
 .obs-form legend { font-size: 12px; font-weight: 600; color: var(--ink-2); padding: 0 6px; text-transform: uppercase; letter-spacing: .06em; }
@@ -288,15 +309,37 @@ body.locked .wrap { visibility: hidden; }
 
   <div id="flags" class="flags"></div>
 
-  <div class="card" id="cardSummary">
-    <h2>Clinic summary <span class="tools"><button id="btnPrintSummary" title="Print only this card">Print summary</button></span></h2>
-    <p class="desc">One page for the visit: the latest growth measures against WHO, recent intake per kilogram against the dietitian's targets, current formula and medication, events, flags and notes.</p>
-    <div class="summary-grid" id="summaryGrid"></div>
-    <div class="two" style="margin-top:12px">
-      <div><div class="eyebrow">Timeline</div><ul class="plain" id="summaryEvents"></ul></div>
-      <div><div class="eyebrow">Flags</div><ul class="plain" id="summaryFlags"></ul></div>
+  <div class="card summary" id="cardSummary">
+    <div class="sum-head">
+      <div>
+        <div class="eyebrow">Clinic summary</div>
+        <h2 id="sumTitle" style="margin:4px 0 0">Feeding and growth summary</h2>
+        <div class="sum-meta" id="sumMeta"></div>
+      </div>
+      <div class="tools"><button id="btnPrintSummary" title="Print only this card">Print summary</button></div>
     </div>
-    <div id="summaryNotesWrap" class="hidden" style="margin-top:12px"><div class="eyebrow">Assessment notes</div><div class="notes" id="summaryNotes"></div></div>
+    <div class="sum-section">
+      <div class="sum-section-title">Growth against WHO standards for girls</div>
+      <div class="sum-stats" id="sumGrowth"></div>
+    </div>
+    <div class="sum-section">
+      <div class="sum-section-title">Intake against the dietitian's targets</div>
+      <div class="sum-table" id="sumIntake"></div>
+    </div>
+    <div class="sum-section">
+      <div class="sum-section-title">What it would take: bottle volume needed per day</div>
+      <div class="sum-table" id="sumVolume"></div>
+      <p class="sum-foot" id="sumVolumeNote"></p>
+    </div>
+    <div class="sum-two">
+      <div class="sum-section"><div class="sum-section-title">Formula and medication</div><div class="sum-kv" id="sumRegimen"></div></div>
+      <div class="sum-section"><div class="sum-section-title">Feeding behavior and symptoms</div><div class="sum-kv" id="sumObs"></div></div>
+    </div>
+    <div class="sum-two">
+      <div class="sum-section"><div class="sum-section-title">Timeline</div><ul class="plain" id="summaryEvents"></ul></div>
+      <div class="sum-section"><div class="sum-section-title">Flags</div><ul class="plain" id="summaryFlags"></ul></div>
+    </div>
+    <div id="summaryNotesWrap" class="sum-section hidden"><div class="sum-section-title">Assessment notes</div><div class="notes" id="summaryNotes"></div></div>
   </div>
 
   <div class="card hero" id="cardHero">
@@ -312,6 +355,9 @@ body.locked .wrap { visibility: hidden; }
         <p class="desc" id="heroDesc"></p>
         <div class="legend" id="heroLegend"></div>
         <div class="chart" id="heroChart"></div>
+        <h3 class="chart-h" style="margin-top:14px">What it would take: bottle volume needed per day</h3>
+        <div class="sum-table" id="heroVolume"></div>
+        <p class="sum-foot" id="heroVolumeNote"></p>
         <div class="tablewrap hidden" id="heroTable"></div>
       </div>
     </div>
@@ -557,7 +603,12 @@ body.locked .wrap { visibility: hidden; }
       <label>Dose, mg <input type="number" step="0.1" id="setMedDoseMg"></label>
       <label>Doses per day <input type="number" step="1" id="setMedDosesPerDay"></label>
     </div>
-    <label>Medication note (concentration, labeled range) <input type="text" id="setMedNote"></label>
+    <div class="set-grid three">
+      <label>Labeled range low, mg/kg per dose <input type="number" step="0.1" id="setMedRangeLow"></label>
+      <label>Labeled range high, mg/kg per dose <input type="number" step="0.1" id="setMedRangeHigh"></label>
+      <label>Range note (age band, frequency) <input type="text" id="setMedRangeNote"></label>
+    </div>
+    <label>Medication note (how the dose was derived) <input type="text" id="setMedNote"></label>
     <label>Assessment notes for the clinic summary (blank line between paragraphs) <textarea id="setNotes" rows="4" spellcheck="false"></textarea></label>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:6px"><button value="cancel" class="ghost">Cancel</button><button value="ok" class="primary" id="setSave">Save</button></div>
   </form>
@@ -599,7 +650,7 @@ const MAX_PLAUSIBLE_OZ = 10; // a single bottle above this is treated as a typo 
 // ---------- state ----------
 // Nothing personal lives in this file: name, birth date, formula density, targets and clinic weights come from the
 // (encrypted) data bundle's profile, and can be overridden locally in Settings.
-const SETTINGS_DEFAULTS = { birth: null, name: '', kcalBase: 20, kcalFort: 20, fortStart: null, needsKcalLow: null, needsKcalHigh: null, prescribedKcal: null, needsFluid: null, prescribedFluid: null, targetsNote: '', extraWeights: '', lengths: '', headCirc: '', proteinPer100ml: null, proteinLow: null, proteinHigh: null, medName: '', medDoseMg: null, medDosesPerDay: null, medNote: '', notes: '' };
+const SETTINGS_DEFAULTS = { birth: null, name: '', kcalBase: 20, kcalFort: 20, fortStart: null, needsKcalLow: null, needsKcalHigh: null, prescribedKcal: null, needsFluid: null, prescribedFluid: null, targetsNote: '', extraWeights: '', lengths: '', headCirc: '', proteinPer100ml: null, proteinLow: null, proteinHigh: null, medName: '', medDoseMg: null, medDosesPerDay: null, medNote: '', medRangeLow: null, medRangeHigh: null, medRangeNote: '', notes: '' };
 const settings = Object.assign({}, SETTINGS_DEFAULTS);
 let BUNDLED_PROFILE = null;
 function applySettings() { for (const k of Object.keys(settings)) delete settings[k]; Object.assign(settings, SETTINGS_DEFAULTS, BUNDLED_PROFILE || {}, JSON.parse(localStorage.getItem(LS.settings) || '{}')); }
@@ -951,7 +1002,7 @@ function renderSmallMultiples(days, periods) {
   // first pass: build every card so the grid settles before any chart measures its width
   for (const s of specs) {
     const card = document.createElement('div'); card.className = 'sm'; const h3 = document.createElement('h3'); h3.textContent = s.title; card.appendChild(h3);
-    const cur = document.createElement('div'); cur.className = 'cur'; const lastP = periods.filter(p => p[s.f] != null && !p.partial).slice(-1)[0]; cur.textContent = lastP ? 'latest full ' + (gran === 'daily' ? 'day' : gran === 'weekly' ? 'week' : 'month') + ': ' + s.fmt(lastP[s.f]) + s.unit : 'not logged in this range'; card.appendChild(cur);
+    const cur = document.createElement('div'); cur.className = 'cur'; const lastP = periods.filter(p => p[s.f] != null && !p.partial).slice(-1)[0]; cur.textContent = lastP ? 'latest full ' + (gran === 'daily' ? 'day' : gran === 'weekly' ? 'week' : 'month') + ' (' + (gran === 'daily' ? fmtDay(lastP.key) : lastP.label) + '): ' + s.fmt(lastP[s.f]) + s.unit : 'not logged in this range'; card.appendChild(cur);
     const ch = document.createElement('div'); ch.className = 'chart'; card.appendChild(ch); host.appendChild(card); s.el = ch;
   }
   for (const s of specs) {
@@ -1251,7 +1302,7 @@ function renderHero(days) {
   fact('Age at last entry', ageLabel(DATA.last));
   { const w = allWeighIns(); if (w.length) { const stale = diffDays(w[w.length - 1].day, DATA.last); const gpd = recentGainPerDay(); if (stale > 14 && gpd != null && cur != null) { const estKg = w[w.length - 1].lbs * LB_KG + gpd * stale / 1000; const adj = cur * (w[w.length - 1].lbs * LB_KG) / estKg; fact('If she kept gaining ' + fmtInt(Math.round(gpd)) + ' g/day', '≈ ' + kgText(estKg) + ' now → ' + M.fmt(adj) + ' ' + M.short); } } }
   const prot = proteinPerKg(last7); if (prot != null) fact('Protein from formula', fmt1(prot) + ' g/kg/day' + (settings.proteinLow ? ' (target ' + settings.proteinLow + '–' + settings.proteinHigh + ')' : ''));
-  const med = medPerKg(); if (med) fact(med.name, med.text);
+  const med = medPerKg(); if (med) fact(med.name + (med.below ? ' (below labeled range)' : ''), med.text);
   { const wl = allWeighIns().slice(-1)[0]; const lens = lengthsCm(); const ll = lens[lens.length - 1]; if (wl && ll && WHO) { const kg = wl.lbs * LB_KG; const medForLen = valAtZ(0, lmsLen(ll.cm)); let wa = null; for (let dd = 0; dd < WHO.wfa.length; dd++) { if (WHO.wfa[dd][2] >= kg) { wa = dd; break; } } if (wa != null && medForLen) { const kcalForWa = wa < 183 ? 108 : 98; const catchUp = kcalForWa * medForLen / kg; fact('Catch-up estimate (formula method)', fmtInt(Math.round(catchUp)) + ' kcal/kg/day · confirm with dietitian'); } } }
   // chart
   const W = widthOf('#heroChart'), H = 360, m = { t: 46, r: 118, b: 44, l: 48 }, w = W - m.l - m.r, h = H - m.t - m.b;
@@ -1319,6 +1370,7 @@ function renderHero(days) {
   if (state.showEvents) for (const c of CATS) if (events.some(e => e.category === c.id)) key('sw', c.color, c.label);
   $('#heroTitle').firstChild.textContent = M.title + ' ';
   $('#heroDesc').textContent = (M.id === 'kcal' ? 'Formula calories each ' : M.id === 'fluid' ? 'Formula volume each ' : 'Bottle ounces each ') + (gran === 'daily' ? 'day' : gran === 'weekly' ? 'week' : 'month') + ' divided by body weight, ' + fmtDayY(ra) + ' to ' + fmtDayY(rb) + '. ' + (M.id === 'kcal' ? 'Formula is counted at ' + settings.kcalBase + ' kcal/oz' + (settings.fortStart ? ' until ' + fmtDay(addDays(settings.fortStart, -1)) + ' and ' + settings.kcalFort + ' kcal/oz from ' + fmtDay(settings.fortStart) + ' (fortification)' : '') + '; calories from solids are not logged and not included. ' : '') + 'Weight is interpolated between weigh-ins (triangles) and held at the last one afterwards. Targets are from the ' + (settings.targetsNote || 'nutrition note') + ' and can be edited in Settings.';
+  renderVolume('#heroVolume', days, '#heroVolumeNote');
   makeTable('#heroTable', [{ label: 'Period', get: p => p.label }, { label: 'Age', get: p => ageLabel(p.start) }, { label: 'Full days', get: p => p.n }, { label: 'oz/day', get: p => p.oz, fmt: fmtOz }, { label: 'ml/day', get: p => p.oz != null ? p.oz * ML_OZ : null, fmt: v => fmtInt(Math.round(v)) }, { label: 'kcal/day', get: p => p.n ? kcalByKey.get(p.key) : null, fmt: v => fmtInt(Math.round(v)) }, { label: 'Weight used', get: p => wByKey.get(p.key), fmt: v => lbsText(v) }, { label: 'kcal/kg', get: p => p.n && wByKey.get(p.key) ? mean(byKey.get(p.key).filter(usable).map(MEASURES.kcal.val).filter(v => v != null)) : null, fmt: v => fmtInt(Math.round(v)) }, { label: 'ml/kg', get: p => p.n && wByKey.get(p.key) ? mean(byKey.get(p.key).filter(usable).map(MEASURES.fluid.val).filter(v => v != null)) : null, fmt: v => fmtInt(Math.round(v)) }, { label: 'oz/lb', get: p => p.n && wByKey.get(p.key) ? mean(byKey.get(p.key).filter(usable).map(MEASURES.ozlb.val).filter(v => v != null)) : null, fmt: fmt2 }], periods);
 }
 
@@ -1460,33 +1512,83 @@ function computeFlags(days, G) {
   if (lo) { let streak = 0; for (let i = ok.length - 1; i >= 0; i--) { const v = MEASURES.kcal.val(ok[i]); if (v != null && v < lo) streak++; else break; } if (streak >= 3) flags.push({ level: 'warn', text: 'Formula calories below the ' + lo + ' kcal/kg/day floor for ' + streak + ' straight full days (through ' + fmtDay(ok[ok.length - 1].day) + ').' }); }
   const w = allWeighIns(); if (w.length) { const stale = diffDays(w[w.length - 1].day, DATA.last); if (stale > 14) flags.push({ level: 'info', text: 'Last weigh-in is ' + stale + ' days old (' + fmtDay(w[w.length - 1].day) + '); per-kg figures assume no gain since then. A weekly home weight on the same scale would tighten them.' }); }
   if (G) { const v = G.vel[G.vel.length - 1]; if (v && v.z <= -2) flags.push({ level: 'warn', text: 'Weight gain over ' + v.label.replace(/\s/g, '') + ' was below the WHO −2 z velocity line (z ' + zText(v.z) + ').' }); const wfl = G.wfl[G.wfl.length - 1]; if (wfl && wfl.z < -1.65) flags.push({ level: 'warn', text: 'Weight-for-length z ' + zText(wfl.z) + ' on ' + fmtDay(wfl.day) + ' is below the −1.65 threshold used for faltering weight.' }); const wfa = G.wfa[G.wfa.length - 1]; if (wfa && wfa.z <= -2) flags.push({ level: 'warn', text: 'Weight-for-age z ' + zText(wfa.z) + ' is at or below −2.' }); }
+  const med = medPerKg(); if (med && med.below) flags.push({ level: 'warn', text: med.name + ' is ' + fmt2(med.perDose) + ' mg/kg per dose, below the labeled ' + settings.medRangeLow + '–' + settings.medRangeHigh + ' mg/kg per dose' + (settings.medRangeNote ? ' (' + settings.medRangeNote + ')' : '') + '. The dose was set at a lower weight; ask the prescriber whether to adjust, trial, or stop.' });
+  if (DATA.diapers.length) { const dl = d3.max(DATA.diapers, x => x.day); const gap = diffDays(dl, DATA.last); if (gap > 7) flags.push({ level: 'info', text: 'Diapers have not been logged since ' + fmtDay(dl) + '. With fluid under target, a wet-diaper count (about 6 or more a day) is the quick hydration check; fewer, or lethargy, warrants same-day evaluation.' }); }
   const ost = obsStats(14); if (ost) { if (ost.airwayDays >= 2) flags.push({ level: 'warn', text: ost.airwayDays + ' days with cough/choking, gurgly breathing or color change at feeds in the last ' + ost.n + ' logged days; recurring airway signs are the usual trigger for a swallow study.' }); if (ost.biliousOrBloodyVomit || ost.bloodStoolDays) flags.push({ level: 'warn', text: 'Green or bloody vomit, or blood in stool, was logged on ' + (ost.biliousOrBloodyVomit + ost.bloodStoolDays) + ' day(s) in the last ' + ost.n + ' logged days; tell the care team.' }); if (ost.comissAvg != null && ost.comissAvg >= 10) flags.push({ level: 'info', text: 'CoMiSS-style symptom score averaged ' + fmt1(ost.comissAvg) + ' over the last ' + ost.n + ' logged days (10+ is the discuss-with-clinician level).' }); }
   return flags;
 }
 function renderFlags(flags) { const el = $('#flags'); el.textContent = ''; if (!flags.length) { el.classList.add('quiet'); el.textContent = 'No active flags: calories at or above the floor for the last 3 full days, weight current, growth measures above the usual thresholds.'; return; } el.classList.remove('quiet'); for (const f of flags) { const d = document.createElement('div'); d.className = 'flag ' + f.level; d.textContent = (f.level === 'warn' ? '⚠ ' : 'ⓘ ') + f.text; el.appendChild(d); } }
+function volumePlan(days) {
+  const w = allWeighIns(); if (!w.length) return null; const kg = w[w.length - 1].lbs * LB_KG; const ok = days.filter(usable);
+  const cur = kcalPerOz(DATA.last); const concs = Array.from(new Set([cur, 27, 30].filter(c => c >= cur))).sort((a, b) => a - b);
+  const targets = []; if (settings.prescribedKcal) targets.push({ label: 'prescribed ' + settings.prescribedKcal + ' kcal/kg', v: +settings.prescribedKcal }); if (settings.needsKcalLow) targets.push({ label: 'needs floor ' + settings.needsKcalLow + ' kcal/kg', v: +settings.needsKcalLow }); if (settings.needsKcalHigh) targets.push({ label: 'needs top ' + settings.needsKcalHigh + ' kcal/kg', v: +settings.needsKcalHigh });
+  const cu = catchUpEstimate(); if (cu) targets.push({ label: 'catch-up estimate ' + fmtInt(Math.round(cu)) + ' kcal/kg', v: cu, est: true });
+  const last28 = ok.slice(-28); const avg28 = mean(last28.map(d => d.oz)); const weekly = []; for (let i = 0; i + 7 <= ok.length; i += 7) weekly.push(mean(ok.slice(i, i + 7).map(d => d.oz))); const best = d3.max(weekly);
+  return { kg, concs, targets, avg28, best, rows: targets.map(t => ({ t, oz: concs.map(c => t.v * kg / c) })) };
+}
+function catchUpEstimate() { const wl = allWeighIns().slice(-1)[0]; const lens = lengthsCm(); const ll = lens[lens.length - 1]; if (!(wl && ll && WHO)) return null; const kg = wl.lbs * LB_KG; const medForLen = valAtZ(0, lmsLen(ll.cm)); let wa = null; for (let dd = 0; dd < WHO.wfa.length; dd++) { if (WHO.wfa[dd][2] >= kg) { wa = dd; break; } } if (wa == null || !medForLen) return null; return (wa < 183 ? 108 : 98) * medForLen / kg; }
+function buildTable(host, head, rows, opts = {}) {
+  const el = typeof host === 'string' ? $(host) : host; el.textContent = ''; const t = document.createElement('table'); t.className = 'data'; const tr = t.createTHead().insertRow(); for (const h of head) { const th = document.createElement('th'); th.textContent = h; tr.appendChild(th); }
+  const tb = t.createTBody(); rows.forEach((r, i) => { const row = tb.insertRow(); if (opts.rowClass) row.className = opts.rowClass(r, i) || ''; r.forEach((c, j) => { const td = row.insertCell(); if (c && typeof c === 'object' && 'text' in c) { td.textContent = c.text; if (c.cls) td.className = c.cls; } else td.textContent = c == null ? '–' : String(c); }); }); el.appendChild(t);
+}
+function renderVolume(host, days, noteHost) {
+  const vp = volumePlan(days); if (!vp) { $(host).textContent = ''; return; }
+  const head = ['Target', ...vp.concs.map(c => c + ' kcal/oz' + (c === kcalPerOz(DATA.last) ? ' (now)' : ''))];
+  const rows = vp.rows.map(r => [r.t.label + (r.t.est ? ' *' : ''), ...r.oz.map(o => ({ text: fmtOz(o) + ' oz', cls: vp.best != null && o > vp.best ? 'over' : '' }))]);
+  rows.push([{ text: 'She takes now: ' + fmtOz(vp.avg28) + ' oz/day (28-day average); best week so far ' + fmtOz(vp.best) + ' oz/day', cls: 'span' }, ...vp.concs.map(() => '')]);
+  buildTable(host, head, rows, { rowClass: (r, i) => i === rows.length - 1 ? 'muted' : '' });
+  if (noteHost) $(noteHost).textContent = 'Ounces per day of formula needed to reach each calorie target at ' + kgText(vp.kg) + ', at the current concentration and two denser mixes. Values above her best-ever weekly average are shaded. * The catch-up estimate uses the weight-age formula method and is an upper bound; the real target is the dietitian\'s call. Calories from solids are not included.';
+}
 function renderSummary(days, G, flags) {
-  const ok = days.filter(usable); const last7 = ok.slice(-7), last28 = ok.slice(-28); const el = $('#summaryGrid'); el.textContent = '';
-  const item = (k, v, sub) => { const d = document.createElement('div'); d.className = 'sum'; const a = document.createElement('div'); a.className = 'label'; a.textContent = k; const b = document.createElement('div'); b.className = 'val'; b.textContent = v; d.append(a, b); if (sub) { const c = document.createElement('div'); c.className = 'sub'; c.textContent = sub; d.appendChild(c); } el.appendChild(d); };
+  const ok = days.filter(usable); const last7 = ok.slice(-7), last28 = ok.slice(-28);
   const avg = (list, f) => { const v = list.map(f).filter(x => x != null); return v.length ? mean(v) : null; };
-  const wfa = G && G.wfa[G.wfa.length - 1], lfa = G && G.lfa[G.lfa.length - 1], wfl = G && G.wfl[G.wfl.length - 1], vel = G && G.vel[G.vel.length - 1];
-  item('Age', ageLabel(DATA.last), 'data through ' + fmtDayY(DATA.last));
-  if (wfa) item('Weight', kgText(wfa.kg), fmtDay(wfa.day) + ' · z ' + zText(wfa.z) + ' · ' + pctText(wfa.pct) + ' pct');
-  if (lfa) item('Length', cmText(lfa.cm), fmtDay(lfa.day) + ' · z ' + zText(lfa.z) + ' · ' + pctText(lfa.pct) + ' pct');
-  if (wfl) item('Weight-for-length', 'z ' + zText(wfl.z), pctText(wfl.pct) + ' pct' + (wfl.z < -1.65 ? ' · below −1.65' : ''));
-  if (vel) item('Gain ' + vel.label.replace(/\s/g, ''), fmtInt(Math.round(vel.perDay)) + ' g/day', 'WHO median ' + fmtInt(Math.round(vel.median / (vel.endDay - vel.startDay))) + ' g/day · z ' + zText(vel.z));
-  const k7 = avg(last7, MEASURES.kcal.val), k28 = avg(last28, MEASURES.kcal.val); if (k7 != null) item('Calories, 7 / 28 days', fmtInt(Math.round(k7)) + ' / ' + fmtInt(Math.round(k28)) + ' kcal/kg/day', settings.needsKcalLow ? 'needs ' + settings.needsKcalLow + '–' + settings.needsKcalHigh + ', prescribed ' + settings.prescribedKcal : '');
-  const f7 = avg(last7, MEASURES.fluid.val), f28 = avg(last28, MEASURES.fluid.val); if (f7 != null) item('Fluid, 7 / 28 days', fmtInt(Math.round(f7)) + ' / ' + fmtInt(Math.round(f28)) + ' ml/kg/day', settings.needsFluid ? 'needs ' + settings.needsFluid + '+, prescribed ' + settings.prescribedFluid : '');
-  const o7 = avg(last7, d => d.oz), o28 = avg(last28, d => d.oz); if (o7 != null) item('Volume, 7 / 28 days', fmtOz(o7) + ' / ' + fmtOz(o28) + ' oz/day', fmt1(avg(last7, d => d.feeds)) + ' feeds/day, ' + fmt2(avg(last7, d => d.ozFeeds ? d.oz / d.ozFeeds : null)) + ' oz/feed');
-  item('Formula', kcalPerOz(DATA.last) + ' kcal/oz', settings.fortStart ? 'fortified since ' + fmtDay(settings.fortStart) : 'standard mix');
-  const protein = proteinPerKg(last7); if (protein != null) item('Protein', fmt1(protein) + ' g/kg/day', 'from formula label' + (settings.proteinLow ? ' · target ' + settings.proteinLow + '–' + settings.proteinHigh : ''));
-  const med = medPerKg(); if (med) item(med.name, med.text, med.sub);
-  const ost = obsStats(14); if (ost) { item('Feeding behavior, last ' + ost.n + ' logged days', ost.airwayDays + ' airway-flag day' + (ost.airwayDays === 1 ? '' : 's'), ost.gaggingDays + ' with anticipatory gagging · distress ' + (ost.distressAvg != null ? fmt1(ost.distressAvg) + '/3' : '–') + ' · ' + (ost.spitAvg != null ? fmt1(ost.spitAvg) + ' spit-ups/day' : '')); item('Stools and symptoms', 'CoMiSS-style ' + (ost.comissAvg != null ? fmt1(ost.comissAvg) : '–'), ost.bloodStoolDays + ' day(s) blood, ' + ost.mucusDays + ' mucus, ' + ost.looseDays + ' loose · highest score ' + (ost.comissMax != null ? ost.comissMax : '–')); }
-  const ev = events.slice().sort((a, b) => a.start < b.start ? -1 : 1); const evEl = $('#summaryEvents'); evEl.textContent = ''; for (const e of ev) { const li = document.createElement('li'); li.textContent = fmtDay(e.start) + (e.end ? ' – ' + fmtDay(e.end) : '') + ': ' + e.name + (e.notes ? ' — ' + e.notes : ''); evEl.appendChild(li); }
-  const fl = $('#summaryFlags'); fl.textContent = ''; for (const f of flags) { const li = document.createElement('li'); li.textContent = f.text; fl.appendChild(li); } if (!flags.length) { const li = document.createElement('li'); li.textContent = 'None active.'; fl.appendChild(li); }
+  $('#sumTitle').textContent = (childName() ? childName() + ': ' : '') + 'feeding and growth summary';
+  $('#sumMeta').textContent = 'Age ' + ageLabel(DATA.last) + (settings.birth ? ' (born ' + fmtDayY(settings.birth) + ')' : '') + ' · data through ' + fmtDayY(DATA.last) + ' · prepared ' + d3.timeFormat('%b %-d, %Y')(new Date()) + ' · ' + ok.length + ' full days in view';
+  // growth stats
+  const gs = $('#sumGrowth'); gs.textContent = '';
+  const stat = (label, value, pills, sub) => { const d = document.createElement('div'); d.className = 'sstat'; const a = document.createElement('div'); a.className = 'label'; a.textContent = label; const b = document.createElement('div'); b.className = 'val'; b.textContent = value; d.append(a, b); if (pills && pills.length) { const pw = document.createElement('div'); pw.className = 'pills'; for (const p of pills) { const s = document.createElement('span'); s.className = 'zpill' + (p.cls ? ' ' + p.cls : ''); s.textContent = p.text; pw.appendChild(s); } d.appendChild(pw); } if (sub) { const c = document.createElement('div'); c.className = 'sub'; c.textContent = sub; d.appendChild(c); } gs.appendChild(d); };
+  const zcls = z => z <= -2 ? 'bad' : z <= -1 ? 'warn' : 'ok';
+  const wfa = G && G.wfa[G.wfa.length - 1], lfa = G && G.lfa[G.lfa.length - 1], wfl = G && G.wfl[G.wfl.length - 1], hc = G && G.hc[G.hc.length - 1], vel = G && G.vel[G.vel.length - 1];
+  if (wfa) stat('Weight', kgText(wfa.kg), [{ text: 'z ' + zText(wfa.z), cls: zcls(wfa.z) }, { text: pctText(wfa.pct) + ' pct' }], fmtDay(wfa.day) + ' (' + wfa.source + ')' + (G.wfa.length > 1 ? ' · from z ' + zText(G.wfa[0].z) + ' at birth' : ''));
+  if (lfa) stat('Length', cmText(lfa.cm), [{ text: 'z ' + zText(lfa.z), cls: zcls(lfa.z) }, { text: pctText(lfa.pct) + ' pct' }], fmtDay(lfa.day));
+  if (wfl) stat('Weight-for-length', 'z ' + zText(wfl.z), [{ text: pctText(wfl.pct) + ' pct' }, ...(wfl.z < -1.65 ? [{ text: 'below −1.65', cls: 'bad' }] : [])], fmtDay(wfl.day) + (G.wfl.length ? ' · lowest z ' + zText(d3.min(G.wfl, p => p.z)) + ' (' + fmtDay(d3.least(G.wfl, p => p.z).day) + ')' : ''));
+  if (hc) stat('Head circumference', cmText(hc.cm), [{ text: 'z ' + zText(hc.z), cls: zcls(hc.z) }, { text: pctText(hc.pct) + ' pct' }], fmtDay(hc.day));
+  if (vel) stat('Gain ' + vel.label.replace(/\s/g, ''), fmtInt(Math.round(vel.perDay)) + ' g/day', [{ text: 'z ' + zText(vel.z), cls: zcls(vel.z) }], 'WHO median ' + fmtInt(Math.round(vel.median / (vel.endDay - vel.startDay))) + ' g/day · lowest interval z ' + zText(d3.min(G.vel, v => v.z)));
+  // intake table
+  const k7 = avg(last7, MEASURES.kcal.val), k28 = avg(last28, MEASURES.kcal.val), f7 = avg(last7, MEASURES.fluid.val), f28 = avg(last28, MEASURES.fluid.val), o7 = avg(last7, d => d.oz), o28 = avg(last28, d => d.oz), p7 = proteinPerKg(last7), p28 = proteinPerKg(last28);
+  const fl = (v, dec = 0) => v == null ? '–' : (dec ? fmt1(v) : fmtInt(Math.round(v)));
+  const cell = (v, lo, dec = 0) => ({ text: fl(v, dec), cls: v != null && lo && v < lo ? 'under' : '' });
+  buildTable('#sumIntake', ['Measure', 'Last 7 full days', 'Last 28 full days', 'Prescribed', 'Estimated needs'], [
+    ['Calories, kcal/kg/day', cell(k7, +settings.needsKcalLow), cell(k28, +settings.needsKcalLow), settings.prescribedKcal || '–', settings.needsKcalLow ? settings.needsKcalLow + '–' + settings.needsKcalHigh : '–'],
+    ['Fluid, ml/kg/day', cell(f7, +settings.needsFluid), cell(f28, +settings.needsFluid), settings.prescribedFluid || '–', settings.needsFluid ? settings.needsFluid + '+' : '–'],
+    ['Volume, oz/day', fl(o7, 1), fl(o28, 1), '–', '–'],
+    ['Feeds per day', fl(avg(last7, d => d.feeds), 1), fl(avg(last28, d => d.feeds), 1), '–', '–'],
+    ['Protein, g/kg/day (formula only)', cell(p7, +settings.proteinLow, 1), cell(p28, +settings.proteinLow, 1), '–', settings.proteinLow ? settings.proteinLow + '–' + settings.proteinHigh : '–'],
+  ]);
+  renderVolume('#sumVolume', days, '#sumVolumeNote');
+  // regimen
+  const kv = $('#sumRegimen'); kv.textContent = '';
+  const row = (host, k, v, cls) => { const d = document.createElement('div'); d.className = 'kv' + (String(v).length > 48 ? ' long' : ''); const a = document.createElement('span'); a.textContent = k; const b = document.createElement('b'); b.textContent = v; if (cls) b.className = cls; d.append(a, b); host.appendChild(d); };
+  row(kv, 'Formula', kcalPerOz(DATA.last) + ' kcal/oz' + (settings.fortStart ? ', fortified since ' + fmtDay(settings.fortStart) + ' (' + settings.kcalBase + ' before)' : ''));
+  if (settings.proteinPer100ml) row(kv, 'Protein in formula', settings.proteinPer100ml + ' g/100 ml at standard mix');
+  const med = medPerKg(); if (med) { row(kv, med.name + ' per dose', med.perDoseText, med.below ? 'under' : ''); row(kv, 'Labeled range', med.rangeText); row(kv, 'Daily total', med.dailyText); if (settings.medNote) row(kv, 'Note', settings.medNote); }
+  const w = allWeighIns(); if (w.length) row(kv, 'Weight used for per-kg figures', kgText(w[w.length - 1].lbs * LB_KG) + ' (' + fmtDay(w[w.length - 1].day) + ', ' + diffDays(w[w.length - 1].day, DATA.last) + ' days ago)');
+  // observations
+  const ob = $('#sumObs'); ob.textContent = ''; const ost = obsStats(14);
+  if (ost) { row(ob, 'Days logged', ost.n + ' (' + fmtDay(ost.start) + ' – ' + fmtDay(ost.end) + ')'); row(ob, 'Airway red-flag days', String(ost.airwayDays), ost.airwayDays >= 2 ? 'under' : ''); row(ob, 'Anticipatory gagging days', String(ost.gaggingDays)); row(ob, 'Distress at feeds', ost.distressAvg != null ? fmt1(ost.distressAvg) + ' / 3 · ' + ost.distressHigh + ' day(s) moderate or worse' : '–'); row(ob, 'Spit-ups per day', ost.spitAvg != null ? fmt1(ost.spitAvg) + (ost.biliousOrBloodyVomit ? ' · ' + ost.biliousOrBloodyVomit + ' day(s) green or bloody' : '') : '–'); row(ob, 'Stools', ost.bloodStoolDays + ' blood · ' + ost.mucusDays + ' mucus · ' + ost.looseDays + ' loose'); row(ob, 'CoMiSS-style score', ost.comissAvg != null ? fmt1(ost.comissAvg) + ' average, ' + ost.comissMax + ' highest' : '–'); }
+  else { const p = document.createElement('p'); p.className = 'sum-foot'; p.textContent = 'No daily observations logged yet. The form is further down the page.'; ob.appendChild(p); }
+  const dl = DATA.diapers.length ? d3.max(DATA.diapers, x => x.day) : null; row(ob, 'Diapers in Huckleberry', dl ? 'last logged ' + fmtDay(dl) + (diffDays(dl, DATA.last) > 7 ? ' (not logged since)' : '') : 'never logged');
+  // timeline, flags, notes
+  const ev = events.slice().sort((a, b) => a.start < b.start ? -1 : 1); const evEl = $('#summaryEvents'); evEl.textContent = ''; for (const e of ev) { const li = document.createElement('li'); const b = document.createElement('b'); b.textContent = fmtDay(e.start) + (e.end ? ' – ' + fmtDay(e.end) : '') + ': ' + e.name; li.appendChild(b); if (e.notes) li.appendChild(document.createTextNode(' — ' + e.notes)); evEl.appendChild(li); }
+  const flEl = $('#summaryFlags'); flEl.textContent = ''; for (const f of flags) { const li = document.createElement('li'); li.textContent = f.text; flEl.appendChild(li); } if (!flags.length) { const li = document.createElement('li'); li.textContent = 'None active.'; flEl.appendChild(li); }
   const notes = $('#summaryNotes'); notes.textContent = ''; const paras = String(settings.notes || '').split(/\n\s*\n/).map(s => s.trim()).filter(Boolean); $('#summaryNotesWrap').classList.toggle('hidden', !paras.length); for (const p of paras) { const d = document.createElement('p'); d.textContent = p; notes.appendChild(d); }
 }
 function proteinPerKg(list) { const g100 = +settings.proteinPer100ml; if (!g100 || !list.length) return null; const v = list.filter(d => d.weightLbs).map(d => d.oz * ML_OZ / 100 * g100 * (kcalPerOz(d.day) / (+settings.kcalBase || 20)) / (d.weightLbs * LB_KG)); return v.length ? mean(v) : null; }
-function medPerKg() { if (!settings.medName || !settings.medDoseMg) return null; const w = allWeighIns(); if (!w.length) return null; const kg = w[w.length - 1].lbs * LB_KG; const perDay = +settings.medDoseMg * (+settings.medDosesPerDay || 1); return { name: settings.medName, text: fmt2(perDay / kg) + ' mg/kg/day', sub: settings.medDoseMg + ' mg × ' + (settings.medDosesPerDay || 1) + '/day at ' + kgText(kg) + (settings.medNote ? ' · ' + settings.medNote : '') }; }
+function medPerKg() {
+  if (!settings.medName || !settings.medDoseMg) return null; const w = allWeighIns(); if (!w.length) return null; const kg = w[w.length - 1].lbs * LB_KG;
+  const perDose = +settings.medDoseMg / kg, n = +settings.medDosesPerDay || 1, lo = +settings.medRangeLow || null, hi = +settings.medRangeHigh || null;
+  return { name: settings.medName, perDose, below: lo != null && perDose < lo, above: hi != null && perDose > hi, perDoseText: fmt2(perDose) + ' mg/kg per dose (' + settings.medDoseMg + ' mg at ' + kgText(kg) + ')', rangeText: lo != null ? lo + '–' + hi + ' mg/kg per dose' + (settings.medRangeNote ? ', ' + settings.medRangeNote : '') : 'not set', dailyText: fmt2(perDose * n) + ' mg/kg/day (' + fmt1(+settings.medDoseMg * n) + ' mg over ' + n + ' dose' + (n > 1 ? 's' : '') + ')', text: fmt2(perDose) + ' mg/kg/dose' + (lo != null ? ' vs ' + lo + '–' + hi : '') };
+}
 
 // ---------- daily observations ----------
 let BUNDLED_OBS = null, obs = [];
@@ -1675,7 +1777,7 @@ $('#btnResetCsv').addEventListener('click', () => { localStorage.removeItem(LS.c
 $('#btnPrint').addEventListener('click', () => window.print());
 $('#btnPrintSummary').addEventListener('click', () => { document.body.classList.add('print-summary'); window.print(); }); window.addEventListener('afterprint', () => document.body.classList.remove('print-summary'));
 let themeBeforePrint = null; window.addEventListener('beforeprint', () => { themeBeforePrint = document.documentElement.dataset.theme || ''; document.documentElement.dataset.theme = 'light'; renderAll(); }); window.addEventListener('afterprint', () => { if (themeBeforePrint) document.documentElement.dataset.theme = themeBeforePrint; else delete document.documentElement.dataset.theme; renderAll(); });
-const SET_FIELDS = { name: 'setName', birth: 'setBirth', kcalBase: 'setKcalBase', kcalFort: 'setKcalFort', fortStart: 'setFortStart', needsKcalLow: 'setNeedsKcalLow', needsKcalHigh: 'setNeedsKcalHigh', prescribedKcal: 'setPrescribedKcal', needsFluid: 'setNeedsFluid', prescribedFluid: 'setPrescribedFluid', targetsNote: 'setTargetsNote', extraWeights: 'setExtraWeights', lengths: 'setLengths', headCirc: 'setHeadCirc', proteinPer100ml: 'setProteinPer100ml', proteinLow: 'setProteinLow', proteinHigh: 'setProteinHigh', medName: 'setMedName', medDoseMg: 'setMedDoseMg', medDosesPerDay: 'setMedDosesPerDay', medNote: 'setMedNote', notes: 'setNotes' };
+const SET_FIELDS = { name: 'setName', birth: 'setBirth', kcalBase: 'setKcalBase', kcalFort: 'setKcalFort', fortStart: 'setFortStart', needsKcalLow: 'setNeedsKcalLow', needsKcalHigh: 'setNeedsKcalHigh', prescribedKcal: 'setPrescribedKcal', needsFluid: 'setNeedsFluid', prescribedFluid: 'setPrescribedFluid', targetsNote: 'setTargetsNote', extraWeights: 'setExtraWeights', lengths: 'setLengths', headCirc: 'setHeadCirc', proteinPer100ml: 'setProteinPer100ml', proteinLow: 'setProteinLow', proteinHigh: 'setProteinHigh', medName: 'setMedName', medDoseMg: 'setMedDoseMg', medDosesPerDay: 'setMedDosesPerDay', medNote: 'setMedNote', medRangeLow: 'setMedRangeLow', medRangeHigh: 'setMedRangeHigh', medRangeNote: 'setMedRangeNote', notes: 'setNotes' };
 $('#btnSettings').addEventListener('click', () => { for (const [k, id] of Object.entries(SET_FIELDS)) $('#' + id).value = settings[k] == null ? '' : settings[k]; $('#settingsDlg').showModal(); });
 $('#settingsDlg').addEventListener('close', () => { if ($('#settingsDlg').returnValue !== 'ok') return; for (const [k, id] of Object.entries(SET_FIELDS)) { const el = $('#' + id); settings[k] = el.type === 'number' ? (el.value === '' ? null : +el.value) : (el.value.trim() || null); } localStorage.setItem(LS.settings, JSON.stringify(settings)); applySettings(); init(); });
 $('#btnTheme').addEventListener('click', () => { const cur = document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); const next = cur === 'dark' ? 'light' : 'dark'; document.documentElement.dataset.theme = next; localStorage.setItem(LS.theme, next); });
