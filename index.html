@@ -202,7 +202,12 @@ ul.plain li { margin-bottom: 5px; } ul.plain b { color: var(--ink); font-weight:
 .notes p { margin: 8px 0; font-size: 15px; max-width: 1000px; line-height: 1.6; }
 /* clinic summary */
 .card.summary { padding-top: 24px; }
-.sum-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--grid); }
+.sum-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--grid); cursor: pointer; list-style: none; }
+.sum-head::-webkit-details-marker { display: none; }
+.card.summary:not([open]) .sum-head { border-bottom: 0; padding-bottom: 0; }
+.sum-toggle-hint { text-transform: none; letter-spacing: 0; font-weight: 500; color: var(--muted); }
+.sum-toggle-hint::after { content: '(click to collapse)'; }
+.card.summary:not([open]) .sum-toggle-hint::after { content: '(collapsed, click to expand)'; }
 .sum-head h2 { font-size: 24px; letter-spacing: -0.02em; }
 .sum-meta { color: var(--ink-2); font-size: 14px; margin-top: 4px; }
 .sum-section { padding: 18px 0 6px; border-bottom: 1px solid var(--grid); }
@@ -226,7 +231,7 @@ ul.plain li { margin-bottom: 5px; } ul.plain b { color: var(--ink); font-weight:
 @media print { .card.summary { font-size: 12.5px; } .sstat .val { font-size: 20px; } .sum-section { padding: 10px 0 4px; } }
 .chart-h { font-size: 14.5px; font-weight: 600; margin: 0 0 6px; }
 .zrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 22px 24px; margin-top: 20px; }
-@media print { body.print-summary .card:not(#cardSummary), body.print-summary .kpis, body.print-summary .flagcard, body.print-summary .grid { display: none !important; } body.print-summary #cardSummary { display: block !important; } }
+@media print { body.print-summary .card:not(#cardSummary), body.print-summary .kpis, body.print-summary .flagcard, body.print-summary .grid { display: none !important; } body.print-summary #cardSummary { display: block !important; } @media print { #cardSummary { display: block; } #cardSummary:not([open]) > *:not(summary) { display: block; } } }
 .obs-form fieldset { border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px 12px; margin: 0; min-width: 0; }
 .obs-form legend { font-size: 12px; font-weight: 600; color: var(--ink-2); padding: 0 6px; text-transform: uppercase; letter-spacing: .06em; }
 .obs-top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
@@ -322,15 +327,15 @@ body.locked .wrap { visibility: hidden; }
     <div id="flags" class="flags"></div>
   </details>
 
-  <div class="card summary" id="cardSummary">
-    <div class="sum-head">
+  <details class="card summary" id="cardSummary" open>
+    <summary class="sum-head">
       <div>
-        <div class="eyebrow">Clinic summary</div>
+        <div class="eyebrow">Clinic summary <span class="sum-toggle-hint"></span></div>
         <h2 id="sumTitle" style="margin:4px 0 0">Feeding and growth summary</h2>
         <div class="sum-meta" id="sumMeta"></div>
       </div>
       <div class="tools"><button id="btnPrintSummary" title="Print only this card">Print summary</button></div>
-    </div>
+    </summary>
     <div class="sum-section">
       <div class="sum-section-title">Growth against WHO standards for girls</div>
       <div class="sum-stats" id="sumGrowth"></div>
@@ -353,7 +358,7 @@ body.locked .wrap { visibility: hidden; }
       <div class="sum-section"><div class="sum-section-title">Flags</div><ul class="plain" id="summaryFlags"></ul></div>
     </div>
     <div id="summaryNotesWrap" class="sum-section hidden"><div class="sum-section-title">Assessment notes</div><div class="notes" id="summaryNotes"></div></div>
-  </div>
+  </details>
 
   <div class="card hero" id="cardHero">
     <div class="hero-grid">
@@ -1797,7 +1802,9 @@ $('#fileCsv').addEventListener('change', async e => {
 $('#btnResetCsv').addEventListener('click', () => { localStorage.removeItem(LS.csv); init(); });
 $('#btnPrint').addEventListener('click', () => window.print());
 $('#flagsCard').addEventListener('toggle', () => localStorage.setItem('feeding-dash-flags-open', $('#flagsCard').open ? '1' : '0'));
-$('#btnPrintSummary').addEventListener('click', () => { document.body.classList.add('print-summary'); window.print(); }); window.addEventListener('afterprint', () => document.body.classList.remove('print-summary'));
+$('#btnPrintSummary').addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); $('#cardSummary').open = true; document.body.classList.add('print-summary'); window.print(); });
+$('#cardSummary').addEventListener('toggle', () => localStorage.setItem('feeding-dash-summary-open', $('#cardSummary').open ? '1' : '0'));
+{ const sv = localStorage.getItem('feeding-dash-summary-open'); if (sv != null) $('#cardSummary').open = sv === '1'; } window.addEventListener('afterprint', () => document.body.classList.remove('print-summary'));
 let themeBeforePrint = null; window.addEventListener('beforeprint', () => { themeBeforePrint = document.documentElement.dataset.theme || ''; document.documentElement.dataset.theme = 'light'; renderAll(); }); window.addEventListener('afterprint', () => { if (themeBeforePrint) document.documentElement.dataset.theme = themeBeforePrint; else delete document.documentElement.dataset.theme; renderAll(); });
 const SET_FIELDS = { name: 'setName', birth: 'setBirth', kcalBase: 'setKcalBase', kcalFort: 'setKcalFort', fortStart: 'setFortStart', needsKcalLow: 'setNeedsKcalLow', needsKcalHigh: 'setNeedsKcalHigh', prescribedKcal: 'setPrescribedKcal', needsFluid: 'setNeedsFluid', prescribedFluid: 'setPrescribedFluid', targetsNote: 'setTargetsNote', extraWeights: 'setExtraWeights', lengths: 'setLengths', headCirc: 'setHeadCirc', proteinPer100ml: 'setProteinPer100ml', proteinLow: 'setProteinLow', proteinHigh: 'setProteinHigh', medName: 'setMedName', medDoseMg: 'setMedDoseMg', medDosesPerDay: 'setMedDosesPerDay', medNote: 'setMedNote', medRangeLow: 'setMedRangeLow', medRangeHigh: 'setMedRangeHigh', medRangeNote: 'setMedRangeNote', notes: 'setNotes' };
 $('#btnSettings').addEventListener('click', () => { for (const [k, id] of Object.entries(SET_FIELDS)) $('#' + id).value = settings[k] == null ? '' : settings[k]; $('#settingsDlg').showModal(); });
