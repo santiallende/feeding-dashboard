@@ -34,20 +34,23 @@ Events you add are saved in your browser. **Export JSON** then `./publish.sh` is
 ## What the sections answer
 
 - **Hero chart (top):** intake per body weight as kcal/kg/day (default), ml/kg/day or oz/lb/day, against the targets from the nutrition note in `profile.json` (estimated needs and prescribed intake). Formula calories follow the kcal/oz schedule in `profile.json` (standard mix, fortified mix and the date it started). Weigh-in markers, age labels and event bands included. All of these numbers are editable in Settings.
-- **Weight for age:** every weigh-in (home from Huckleberry, clinic from Settings) against the WHO girls weight-for-age standard, with her percentile over time alongside. Hover any point for percentile, z-score and a plain-language reading.
+- **Clinic summary (top):** one printable card with the latest weight, length, weight-for-length and head-circumference z-scores, monthly weight gain against the WHO velocity standard, 7- and 28-day kcal/kg and ml/kg, formula concentration, protein and medication per kg, the event timeline, active flags and assessment notes. "Print summary" prints only this card.
+- **Flags:** automatic notes when formula calories sit below the needs floor for 3+ days, the last weigh-in is older than 14 days, monthly gain falls below the WHO −2 z line, or weight-for-length is below −1.65 z.
+- **Growth:** weight-for-age and length-for-age curves, four z-score panels (weight-for-age, length-for-age, weight-for-length, head circumference) and monthly weight gain versus the WHO weight-velocity standard, all from the WHO expanded tables in `vendor/who_girls.js`. Hover any point for z, percentile and a plain-language reading.
 - **KPI tiles:** last 7 full days vs the 7 before.
 - **Intake:** ounces per day, week or month, with the trailing 7-day average on the daily view.
 - **How she's eating:** feeds/day, oz per feed, largest feed, longest stretch, sleep, poops.
 - **When she eats:** hour-of-day heatmap by week.
 - **Bottle size vs. time to next feed:** whether a bigger bottle buys a longer stretch.
 - **Hunger drive:** lead-lag analysis. Each day is compared with its neighbours' average; the correlation between today's and tomorrow's deviation is tested against a shuffled-days baseline, because detrending alone creates a spurious negative correlation.
-- **Events:** before/during/after comparison for each event, with a Welch t-test on the daily totals.
+- **Events:** before/during/after comparison for each event (14-day windows by default), with calories per day, a Welch t-test and a 95% confidence interval on the change.
+- **Hunger drive:** labelled exploratory; it is not a validated clinical measure.
 
 The hunger-drive and events cards each have a collapsible "How to read this section" glossary, and every tile, bar, dot and dumbbell row explains what its numbers mean when hovered.
 
 ## Data handling notes
 
-- Name, birth date, the formula kcal/oz schedule, nutrition-note targets and clinic weigh-ins live in `profile.json` (git-ignored, bundled into the encrypted data) and can be overridden per browser in Settings. Nothing personal is in `index.html` or this repository. 
+- Name, birth date, the formula kcal/oz schedule, nutrition-note targets, clinic weigh-ins, lengths, head circumference, protein per 100 ml, medication dose and assessment notes live in `profile.json` (git-ignored, bundled into the encrypted data) and can be overridden per browser in Settings. Nothing personal is in `index.html` or this repository. 
 - "All" starts on the first day fully on measured bottle feeds (nursing has no ounces).
 - The last day of the export is treated as partial and left out of averages.
 - Single bottles over 10 oz are treated as typos and not counted (listed in the footer). Fix them in Huckleberry and re-export.
@@ -60,7 +63,7 @@ The hunger-drive and events cards each have a collapsible "How to read this sect
 - `data.enc.js` – encrypted bundle, the only data file that is published
 - `data.js` – plain bundle for local use (generated, git-ignored)
 - `vendor/d3.v7.min.js` – charting library, vendored so it works offline
-- `vendor/who_wfa_girls.js` – WHO weight-for-age LMS table for girls (days 0–731), from the WHO expanded tables
+- `vendor/who_girls.js` – WHO girls standards: weight-for-age, length-for-age, head-circumference-for-age (days 0–731), weight-for-length (45–110 cm) and 1-/2-month weight-velocity LMS tables
 - `build_data.py` – CSV + events → `data.js` and `data.enc.js`
 - `publish.sh` – the one-command update described above
 - `events.json`, `profile.json`, `*.csv`, `.passphrase` – local only, never committed

@@ -181,6 +181,21 @@ dialog textarea { font: inherit; color: var(--ink); background: var(--control-bg
 dialog code { font-size: 12px; }
 .growth-two { grid-template-columns: 1.6fr 1fr; }
 @media (max-width: 980px) { .growth-two { grid-template-columns: 1fr; } }
+.flags { display: flex; flex-direction: column; gap: 6px; margin: 0 0 16px; }
+.flags.quiet { color: var(--muted); font-size: 12.5px; padding: 0 4px; }
+.flag { padding: 9px 12px; border-radius: 10px; font-size: 13px; border: 1px solid var(--border); background: var(--surface); }
+.flag.warn { border-color: color-mix(in srgb, var(--s4) 50%, transparent); background: color-mix(in srgb, var(--s4) 12%, var(--surface)); }
+.flag.info { color: var(--ink-2); }
+.summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px 16px; }
+.sum .label { color: var(--ink-2); font-size: 12px; }
+.sum .val { font-size: 18px; font-weight: 650; letter-spacing: -0.01em; margin-top: 2px; }
+.sum .sub { color: var(--muted); font-size: 12px; margin-top: 1px; }
+ul.plain { margin: 6px 0 0; padding-left: 18px; font-size: 13px; color: var(--ink-2); }
+ul.plain li { margin-bottom: 3px; }
+.notes p { margin: 6px 0; font-size: 13.5px; max-width: 980px; }
+.chart-h { font-size: 13px; font-weight: 600; margin: 0 0 4px; }
+.zrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-top: 12px; }
+@media print { body.print-summary .card:not(#cardSummary), body.print-summary .kpis, body.print-summary .flags, body.print-summary .grid { display: none !important; } body.print-summary #cardSummary { display: block !important; } }
 .gate { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; background: var(--glow), var(--page); padding: 20px; }
 .gate-card { width: min(440px, 100%); background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 28px 30px; box-shadow: var(--shadow); }
 .gate-card h2 { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; margin: 8px 0 6px; }
@@ -253,6 +268,19 @@ body.locked .wrap { visibility: hidden; }
     <label class="check" title="Show event bands and markers on the charts"><input type="checkbox" id="showEvents" checked> Show events on charts</label>
   </div>
 
+  <div id="flags" class="flags"></div>
+
+  <div class="card" id="cardSummary">
+    <h2>Clinic summary <span class="tools"><button id="btnPrintSummary" title="Print only this card">Print summary</button></span></h2>
+    <p class="desc">One page for the visit: the latest growth measures against WHO, recent intake per kilogram against the dietitian's targets, current formula and medication, events, flags and notes.</p>
+    <div class="summary-grid" id="summaryGrid"></div>
+    <div class="two" style="margin-top:12px">
+      <div><div class="eyebrow">Timeline</div><ul class="plain" id="summaryEvents"></ul></div>
+      <div><div class="eyebrow">Flags</div><ul class="plain" id="summaryFlags"></ul></div>
+    </div>
+    <div id="summaryNotesWrap" class="hidden" style="margin-top:12px"><div class="eyebrow">Assessment notes</div><div class="notes" id="summaryNotes"></div></div>
+  </div>
+
   <div class="card hero" id="cardHero">
     <div class="hero-grid">
       <div class="hero-side">
@@ -274,18 +302,26 @@ body.locked .wrap { visibility: hidden; }
   <div class="card hero" id="cardGrowth">
     <div class="hero-grid">
       <div class="hero-side">
-        <div class="eyebrow">Weight for age</div>
+        <div class="eyebrow">Growth</div>
         <div class="hero-value" id="growthValue">–</div>
         <div class="hero-sub" id="growthSub"></div>
         <div class="hero-facts" id="growthFacts"></div>
       </div>
       <div class="hero-main">
-        <h2>Weight against the WHO growth standard for girls <span class="tools"><button data-table="growth">Table</button></span></h2>
+        <h2>Growth against the WHO standards for girls <span class="tools"><button data-table="growth">Table</button></span></h2>
         <p class="desc" id="growthDesc"></p>
         <div class="legend" id="growthLegend"></div>
-        <div class="two growth-two" id="growthCharts">
-          <div class="chart" id="growthChart"></div>
-          <div class="chart" id="pctChart"></div>
+        <div id="growthCharts">
+          <div class="two">
+            <div><h3 class="chart-h">Weight for age</h3><div class="chart" id="growthChart"></div></div>
+            <div><h3 class="chart-h">Length for age</h3><div class="chart" id="lfaChart"></div></div>
+          </div>
+          <div class="zrow">
+            <div class="sm" id="zWfa"></div><div class="sm" id="zLfa"></div><div class="sm" id="zWfl"></div><div class="sm" id="zHc"></div>
+          </div>
+          <h3 class="chart-h" style="margin-top:14px">Weight gain per WHO one-month interval vs. the WHO weight-velocity standard</h3>
+          <div class="legend"><span class="key"><span class="sw" style="background:var(--s1)"></span>her gain</span><span class="key"><span class="sw" style="background:var(--div-neg)"></span>below −2 z</span><span class="key"><span class="sw" style="background:var(--grid)"></span>WHO −2 to +2 z</span><span class="key"><span class="ln" style="background:var(--ink-2)"></span>WHO median</span></div>
+          <div class="chart" id="velChart"></div>
         </div>
         <div class="tablewrap hidden" id="growthTable"></div>
       </div>
@@ -326,8 +362,8 @@ body.locked .wrap { visibility: hidden; }
     </div>
 
     <div class="card" id="cardLag">
-      <h2>Hunger drive: does a light day lead to a heavier one? <span class="tools"><button data-table="lag">Table</button></span></h2>
-      <p class="desc">Each day is compared with the average of its neighbours (three days either side) so growth doesn't masquerade as correlation. The "residual" is ounces above or below that local trend. A lag-1 correlation <b>more negative than shuffled days produce</b> means she compensates (light day, then heavier day). One <b>more positive</b> means light days cluster, which usually points to illness or teething rather than appetite.</p>
+      <h2>Hunger drive: does a light day lead to a heavier one? <span class="pill">exploratory</span> <span class="tools"><button data-table="lag">Table</button></span></h2>
+      <p class="desc">This is an exploratory analysis, not a validated clinical measure; use it for curiosity, not decisions. Each day is compared with the average of its neighbours (three days either side) so growth doesn't masquerade as correlation. The "residual" is ounces above or below that local trend. A lag-1 correlation <b>more negative than shuffled days produce</b> means she compensates (light day, then heavier day). One <b>more positive</b> means light days cluster, which usually points to illness or teething rather than appetite.</p>
       <details class="howto"><summary>How to read this section</summary>
         <dl>
           <dt>Trend</dt><dd>What the surrounding week predicts for a day: the average of the three days before and the three after, with the day itself left out. It tracks growth and slow changes so they don't get mistaken for day-to-day behaviour.</dd>
@@ -370,7 +406,7 @@ body.locked .wrap { visibility: hidden; }
       </form>
       <div class="legend" id="evLegend"></div>
       <div class="event-list" id="eventList"></div>
-      <h2 style="margin-top:18px;font-size:14px">Before vs. after each event <span class="tools"><span class="seg" id="winSeg"><button data-win="7" aria-pressed="true">7-day windows</button><button data-win="14" aria-pressed="false">14-day windows</button></span></span></h2>
+      <h2 style="margin-top:18px;font-size:14px">Before vs. after each event <span class="tools"><span class="seg" id="winSeg"><button data-win="7" aria-pressed="false">7-day windows</button><button data-win="14" aria-pressed="true">14-day windows</button></span></span></h2>
       <p class="desc">"Before" is the window ending the day before the event; "during" is the event's own days (ranges only); "after" is the window starting the day after it ends (or on the event day for single-day events). Partial and excluded days are skipped. Hover a row for a plain-language reading.</p>
       <details class="howto"><summary>How to read this section</summary>
         <dl>
@@ -428,13 +464,29 @@ body.locked .wrap { visibility: hidden; }
       <label>Prescribed ml/kg/day <input type="number" id="setPrescribedFluid"></label>
       <label>Source label <input type="text" id="setTargetsNote" placeholder="nutrition note, Oct 14, 2026"></label>
     </div>
-    <label style="margin-top:10px">Clinic weigh-ins, one per line as <code>YYYY-MM-DD 5.9</code> (kg; add "lb" for pounds) <textarea id="setExtraWeights" rows="3" spellcheck="false"></textarea></label>
+    <div class="eyebrow" style="margin:10px 0 6px">Growth measurements (one per line: <code>YYYY-MM-DD value unit</code>)</div>
+    <div class="set-grid three">
+      <label>Clinic weigh-ins (kg, or add "lb") <textarea id="setExtraWeights" rows="3" spellcheck="false"></textarea></label>
+      <label>Lengths (in or cm) <textarea id="setLengths" rows="3" spellcheck="false"></textarea></label>
+      <label>Head circumference (in or cm) <textarea id="setHeadCirc" rows="3" spellcheck="false"></textarea></label>
+    </div>
+    <div class="eyebrow" style="margin:10px 0 6px">Protein and medication</div>
+    <div class="set-grid three">
+      <label>Protein, g per 100 ml at standard mix <input type="number" step="0.1" id="setProteinPer100ml"></label>
+      <label>Protein target low, g/kg/day <input type="number" step="0.1" id="setProteinLow"></label>
+      <label>Protein target high, g/kg/day <input type="number" step="0.1" id="setProteinHigh"></label>
+      <label>Medication name <input type="text" id="setMedName"></label>
+      <label>Dose, mg <input type="number" step="0.1" id="setMedDoseMg"></label>
+      <label>Doses per day <input type="number" step="1" id="setMedDosesPerDay"></label>
+    </div>
+    <label>Medication note (concentration, labeled range) <input type="text" id="setMedNote"></label>
+    <label>Assessment notes for the clinic summary (blank line between paragraphs) <textarea id="setNotes" rows="4" spellcheck="false"></textarea></label>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:6px"><button value="cancel" class="ghost">Cancel</button><button value="ok" class="primary" id="setSave">Save</button></div>
   </form>
 </dialog>
 
 <script src="vendor/d3.v7.min.js"></script>
-<script src="vendor/who_wfa_girls.js"></script>
+<script src="vendor/who_girls.js"></script>
 <script src="data.js"></script>
 <script src="data.enc.js"></script>
 <script>
@@ -469,13 +521,13 @@ const MAX_PLAUSIBLE_OZ = 10; // a single bottle above this is treated as a typo 
 // ---------- state ----------
 // Nothing personal lives in this file: name, birth date, formula density, targets and clinic weights come from the
 // (encrypted) data bundle's profile, and can be overridden locally in Settings.
-const SETTINGS_DEFAULTS = { birth: null, name: '', kcalBase: 20, kcalFort: 20, fortStart: null, needsKcalLow: null, needsKcalHigh: null, prescribedKcal: null, needsFluid: null, prescribedFluid: null, targetsNote: '', extraWeights: '' };
+const SETTINGS_DEFAULTS = { birth: null, name: '', kcalBase: 20, kcalFort: 20, fortStart: null, needsKcalLow: null, needsKcalHigh: null, prescribedKcal: null, needsFluid: null, prescribedFluid: null, targetsNote: '', extraWeights: '', lengths: '', headCirc: '', proteinPer100ml: null, proteinLow: null, proteinHigh: null, medName: '', medDoseMg: null, medDosesPerDay: null, medNote: '', notes: '' };
 const settings = Object.assign({}, SETTINGS_DEFAULTS);
 let BUNDLED_PROFILE = null;
 function applySettings() { for (const k of Object.keys(settings)) delete settings[k]; Object.assign(settings, SETTINGS_DEFAULTS, BUNDLED_PROFILE || {}, JSON.parse(localStorage.getItem(LS.settings) || '{}')); }
 const childName = () => settings.name || '';
 const dashTitle = () => (childName() ? childName() + ' feeding dashboard' : 'Feeding dashboard');
-const state = { range: 'all', from: null, to: null, gran: 'daily', excludeIll: false, showEvents: true, win: 7, measure: localStorage.getItem('feeding-dash-measure') || 'kcal', units: 'metric' };
+const state = { range: 'all', from: null, to: null, gran: 'daily', excludeIll: false, showEvents: true, win: 14, measure: localStorage.getItem('feeding-dash-measure') || 'kcal', units: 'metric' };
 state.units = state.measure === 'ozlb' ? 'imperial' : 'metric';
 // intake per body weight: stored as oz per lb, shown as oz/lb or ml/kg
 const PER_KG = 29.5735 / 0.453592; // 1 oz/lb = 65.2 ml/kg
@@ -523,7 +575,7 @@ function buildDays(D) {
   const minT = d3.min(allTimes), maxT = d3.max(allTimes);
   const first = dayKey(minT), last = dayKey(maxT);
   const days = new Map();
-  for (let k = first; k <= last; k = addDays(k, 1)) days.set(k, { day: k, oz: 0, feeds: 0, ozFeeds: 0, maxFeed: 0, breastFeeds: 0, breastMin: 0, sleepMin: 0, stretchH: null, diapers: 0, poos: 0, weightLbs: null, partial: false });
+  for (let k = first; k <= last; k = addDays(k, 1)) days.set(k, { day: k, oz: 0, feeds: 0, ozFeeds: 0, maxFeed: 0, breastFeeds: 0, breastMin: 0, sleepMin: 0, stretchH: null, diapers: 0, poos: 0, pees: 0, weightLbs: null, partial: false });
   for (const f of D.feeds) { const d = days.get(f.day); if (!d) continue; d.feeds++; if (f.oz != null) { d.oz += f.oz; d.ozFeeds++; d.maxFeed = Math.max(d.maxFeed, f.oz); } if (f.source === 'Breast') { d.breastFeeds++; d.breastMin += f.breastMin; } }
   // longest gap between consecutive feeds -> credited to the day holding the gap's midpoint
   for (let i = 1; i < D.feeds.length; i++) {
@@ -535,11 +587,11 @@ function buildDays(D) {
     let cur = new Date(s.start);
     while (cur < s.end) { const next = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() + 1); const seg = next < s.end ? next : s.end; const d = days.get(dayKey(cur)); if (d) d.sleepMin += (seg - cur) / 6e4; cur = seg; }
   }
-  for (const x of D.diapers) { const d = days.get(x.day); if (d) { d.diapers++; if (x.poo) d.poos++; } }
+  for (const x of D.diapers) { const d = days.get(x.day); if (d) { d.diapers++; if (x.poo) d.poos++; if (x.pee) d.pees++; } }
   for (const d of days.values()) { if (d.feeds === 0) { d.partial = true; } } // a day with nothing logged at all is a gap, not a fast
   // sleep and diapers were not logged every day: a day with no entries of that type is "not logged", not zero
   const sleepDays = new Set(D.sleeps.map(s => dayKey(s.start))), diaperDays = new Set(D.diapers.map(x => x.day));
-  for (const d of days.values()) { if (!sleepDays.has(d.day)) d.sleepMin = null; if (!diaperDays.has(d.day)) { d.diapers = null; d.poos = null; } }
+  for (const d of days.values()) { if (!sleepDays.has(d.day)) d.sleepMin = null; if (!diaperDays.has(d.day)) { d.diapers = null; d.poos = null; d.pees = null; } }
   // weight: linear interpolation between weigh-ins, carried flat at the ends
   const g = D.growth.filter(x => x.lbs != null).map(x => ({ day: x.day, lbs: x.lbs })).concat(extraWeighIns()).sort((p, q) => p.day < q.day ? -1 : 1);
   const gKeys = g.map(x => fromKey(x.day).getTime()), gVals = g.map(x => x.lbs);
@@ -611,7 +663,7 @@ function aggregate(days, gran) {
       oz: n ? sumOz / n : null, totalOz: sumOz, feeds: n ? d3.sum(ok, d => d.feeds) / n : null,
       ozPerFeed: sumOzFeeds ? sumOz / sumOzFeeds : null,
       maxFeed: n ? d3.max(ok, d => d.maxFeed) : null, stretchH: mean(ok.map(d => d.stretchH).filter(x => x != null)), sleepH: mean(ok.filter(d => d.sleepMin != null).map(d => d.sleepMin / 60)),
-      ozPerLb: mean(ok.filter(d => d.weightLbs).map(d => d.oz / d.weightLbs)), poos: mean(ok.filter(d => d.poos != null).map(d => d.poos)),
+      ozPerLb: mean(ok.filter(d => d.weightLbs).map(d => d.oz / d.weightLbs)), poos: mean(ok.filter(d => d.poos != null).map(d => d.poos)), pees: mean(ok.filter(d => d.pees != null).map(d => d.pees)),
       partial: list.some(d => d.partial), excluded: list.every(d => d.excluded) });
   }
   return out.sort((a, b) => a.key < b.key ? -1 : 1);
@@ -814,6 +866,7 @@ function renderSmallMultiples(days, periods) {
     { f: 'stretchH', title: 'Longest stretch between feeds', unit: ' h', fmt: fmt1, roll: () => rolling(days, d => d.stretchH) },
     { f: 'sleepH', title: 'Logged sleep per day', unit: ' h', fmt: fmt1, roll: () => rolling(days, d => d.sleepMin == null ? null : d.sleepMin / 60) },
     { f: 'poos', title: 'Poops per day', unit: '', fmt: fmt1, roll: () => rolling(days, d => d.poos) },
+    { f: 'pees', title: 'Wet diapers per day', unit: '', fmt: fmt1, roll: () => rolling(days, d => d.pees) },
   ];
   const host = $('#smCharts'); host.textContent = '';
   const dense = gran === 'daily' && periods.length > 45;
@@ -977,6 +1030,7 @@ function welchP(a, b) {
   const t = (ma - mb) / se; const df = Math.pow(va / a.length + vb / b.length, 2) / ((va * va) / (a.length * a.length * (a.length - 1)) + (vb * vb) / (b.length * b.length * (b.length - 1)));
   return 2 * (1 - tCdf(Math.abs(t), df));
 }
+function welchCI(a, b) { if (a.length < 3 || b.length < 3) return null; const ma = mean(a), mb = mean(b), va = d3.variance(a) || 0, vb = d3.variance(b) || 0; const se = Math.sqrt(va / a.length + vb / b.length); if (!se) return null; const df = Math.pow(va / a.length + vb / b.length, 2) / ((va * va) / (a.length * a.length * (a.length - 1)) + (vb * vb) / (b.length * b.length * (b.length - 1))); const t = tQuant(0.975, df); return [(mb - ma) - t * se, (mb - ma) + t * se]; }
 function tCdf(t, df) { const x = df / (df + t * t); return 1 - 0.5 * ibeta(x, df / 2, 0.5); }
 function ibeta(x, a, b) { // regularized incomplete beta (Numerical Recipes continued fraction)
   if (x <= 0) return 0; if (x >= 1) return 1;
@@ -1041,7 +1095,7 @@ function renderEvents() {
     grp.append('circle').attr('cx', x(r.after.oz)).attr('cy', cy).attr('r', 6).style('fill', 'var(--s1)').style('stroke', 'var(--surface)').attr('stroke-width', 2);
     if (r.during && r.during.n) grp.append('rect').attr('x', x(r.during.oz) - 4).attr('y', cy - 4).attr('width', 8).attr('height', 8).attr('rx', 2).attr('transform', 'rotate(45 ' + x(r.during.oz) + ' ' + cy + ')').style('fill', catColor(r.e.category)).style('stroke', 'var(--surface)').attr('stroke-width', 2);
     const d = r.after.oz - r.before.oz; grp.append('text').attr('x', x(Math.max(r.before.oz, r.after.oz)) + 10).attr('y', cy + 4).attr('class', 'ann-label').style('fill', 'var(--ink)').style('font-weight', 600).text(fmtSigned(d) + ' oz/day');
-    const pBA = welchP(r.before.ozList, r.after.ozList); const sdW = Math.max(r.before.ozSd || 0, r.after.ozSd || 0); const pct = r.before.oz ? d / r.before.oz : 0;
+    const pBA = welchP(r.before.ozList, r.after.ozList); const ciBA = welchCI(r.before.ozList, r.after.ozList); const sdW = Math.max(r.before.ozSd || 0, r.after.ozSd || 0); const pct = r.before.oz ? d / r.before.oz : 0;
     let meaning = 'Intake ' + (Math.abs(pct) < 0.05 ? 'barely moved: ' : (d > 0 ? 'rose from ' : 'fell from ')) + fmtOz(r.before.oz) + ' to ' + fmtOz(r.after.oz) + ' oz/day (' + fmtSigned(d) + ', ' + d3.format('+.0%')(pct) + '). Days inside these windows differed from each other by about ' + fmt1(sdW) + ' oz, so ';
     meaning += pBA != null && pBA < 0.05 ? 'a shift this size is bigger than that noise usually produces (' + pText(pBA) + '): probably a real change, though not necessarily caused by this event.' : 'this difference is within what noise alone produces (' + (pBA != null ? pText(pBA) : 'too few days to test') + '): no clear change in how much she ate.';
     const fd = r.after.feeds - r.before.feeds, pf = r.after.ozPerFeed != null && r.before.ozPerFeed != null ? r.after.ozPerFeed - r.before.ozPerFeed : null;
@@ -1054,7 +1108,7 @@ function renderEvents() {
     else if (/fortif|kcal/i.test(r.e.name)) catNote = 'Volume ' + (Math.abs(pct) < 0.05 ? 'stayed about the same' : (d > 0 ? 'rose' : 'fell') + ' ' + d3.format('.0%')(Math.abs(pct))) + ' while calories went from ' + fmtInt(Math.round(r.before.kcal)) + ' to ' + fmtInt(Math.round(r.after.kcal)) + ' kcal/day (' + d3.format('+.0%')(r.before.kcal ? (r.after.kcal - r.before.kcal) / r.before.kcal : 0) + ') because of the richer mix. ' + (d < -0.5 ? 'She drank a little less of the denser formula, which is common; the calorie gain is what matters here.' : 'She did not drink less of the denser formula, so the fortification delivered its full calorie boost.');
     else if (/solid/i.test(r.e.name)) catNote = d < -0.5 ? 'A drop in bottle volume after starting solids is expected: food is replacing some formula.' : 'Bottle volume did not drop after starting solids, so food has so far come on top of formula rather than replacing it. That is normal in the first weeks, when solids are mostly practice.';
     else catNote = pattern;
-    const rows = [['Before (' + r.before.n + ' days)', fmtOz(r.before.oz) + ' oz/day', 'var(--s1-light)'], ...(r.during && r.during.n ? [['During (' + r.during.n + ' days)', fmtOz(r.during.oz) + ' oz/day', catColor(r.e.category)]] : []), ['After (' + r.after.n + ' days)', fmtOz(r.after.oz) + ' oz/day', 'var(--s1)'], ['Change', fmtSigned(d) + ' oz/day'], ['Calories before → after', fmtInt(Math.round(r.before.kcal)) + ' → ' + fmtInt(Math.round(r.after.kcal)) + ' kcal/day (' + d3.format('+.0%')(r.before.kcal ? (r.after.kcal - r.before.kcal) / r.before.kcal : 0) + ')'], ['Feeds/day change', fmtSigned(fd)], ...(pf != null ? [['Oz per feed change', d3.format('+.2f')(pf) + ' oz']] : []), ...(r.after.sleepH != null && r.before.sleepH != null ? [['Sleep change', fmtSigned(r.after.sleepH - r.before.sleepH) + ' h/day']] : []), [meaning]];
+    const rows = [['Before (' + r.before.n + ' days)', fmtOz(r.before.oz) + ' oz/day', 'var(--s1-light)'], ...(r.during && r.during.n ? [['During (' + r.during.n + ' days)', fmtOz(r.during.oz) + ' oz/day', catColor(r.e.category)]] : []), ['After (' + r.after.n + ' days)', fmtOz(r.after.oz) + ' oz/day', 'var(--s1)'], ['Change', fmtSigned(d) + ' oz/day' + (ciBA ? ' (95% CI ' + fmtSigned(ciBA[0]) + ' to ' + fmtSigned(ciBA[1]) + ')' : '')], ['Calories before → after', fmtInt(Math.round(r.before.kcal)) + ' → ' + fmtInt(Math.round(r.after.kcal)) + ' kcal/day (' + d3.format('+.0%')(r.before.kcal ? (r.after.kcal - r.before.kcal) / r.before.kcal : 0) + ')'], ['Feeds/day change', fmtSigned(fd)], ...(pf != null ? [['Oz per feed change', d3.format('+.2f')(pf) + ' oz']] : []), ...(r.after.sleepH != null && r.before.sleepH != null ? [['Sleep change', fmtSigned(r.after.sleepH - r.before.sleepH) + ' h/day']] : []), [meaning]];
     if (catNote) rows.push([catNote]);
     grp.append('rect').attr('x', -labelW).attr('y', cy - rowH / 2).attr('width', labelW + w + m.r).attr('height', rowH).attr('fill', 'transparent').on('pointermove', ev => showTip(ev, r.e.name, rows)).on('pointerleave', hideTip);
   });
@@ -1117,6 +1171,10 @@ function renderHero(days) {
   const fLast = mean(last7.map(d => d.feeds)); if (fLast != null) fact('Feeds per day', fmt1(fLast));
   const gw = allWeighIns().slice(-1)[0]; if (gw) fact('Weight used (last weigh-in ' + fmtDay(gw.day) + ')', lbsText(gw.lbs));
   fact('Age at last entry', ageLabel(DATA.last));
+  { const w = allWeighIns(); if (w.length) { const stale = diffDays(w[w.length - 1].day, DATA.last); const gpd = recentGainPerDay(); if (stale > 14 && gpd != null && cur != null) { const estKg = w[w.length - 1].lbs * LB_KG + gpd * stale / 1000; const adj = cur * (w[w.length - 1].lbs * LB_KG) / estKg; fact('If she kept gaining ' + fmtInt(Math.round(gpd)) + ' g/day', '≈ ' + kgText(estKg) + ' now → ' + M.fmt(adj) + ' ' + M.short); } } }
+  const prot = proteinPerKg(last7); if (prot != null) fact('Protein from formula', fmt1(prot) + ' g/kg/day' + (settings.proteinLow ? ' (target ' + settings.proteinLow + '–' + settings.proteinHigh + ')' : ''));
+  const med = medPerKg(); if (med) fact(med.name, med.text);
+  { const wl = allWeighIns().slice(-1)[0]; const lens = lengthsCm(); const ll = lens[lens.length - 1]; if (wl && ll && WHO) { const kg = wl.lbs * LB_KG; const medForLen = valAtZ(0, lmsLen(ll.cm)); let wa = null; for (let dd = 0; dd < WHO.wfa.length; dd++) { if (WHO.wfa[dd][2] >= kg) { wa = dd; break; } } if (wa != null && medForLen) { const kcalForWa = wa < 183 ? 108 : 98; const catchUp = kcalForWa * medForLen / kg; fact('Catch-up estimate (formula method)', fmtInt(Math.round(catchUp)) + ' kcal/kg/day · confirm with dietitian'); } } }
   // chart
   const W = widthOf('#heroChart'), H = 360, m = { t: 46, r: 118, b: 44, l: 48 }, w = W - m.l - m.r, h = H - m.t - m.b;
   const svg = svgIn('#heroChart', W, H); const g = svg.append('g').attr('transform', 'translate(' + m.l + ',' + m.t + ')');
@@ -1186,90 +1244,175 @@ function renderHero(days) {
   makeTable('#heroTable', [{ label: 'Period', get: p => p.label }, { label: 'Age', get: p => ageLabel(p.start) }, { label: 'Full days', get: p => p.n }, { label: 'oz/day', get: p => p.oz, fmt: fmtOz }, { label: 'ml/day', get: p => p.oz != null ? p.oz * ML_OZ : null, fmt: v => fmtInt(Math.round(v)) }, { label: 'kcal/day', get: p => p.n ? kcalByKey.get(p.key) : null, fmt: v => fmtInt(Math.round(v)) }, { label: 'Weight used', get: p => wByKey.get(p.key), fmt: v => lbsText(v) }, { label: 'kcal/kg', get: p => p.n && wByKey.get(p.key) ? mean(byKey.get(p.key).filter(usable).map(MEASURES.kcal.val).filter(v => v != null)) : null, fmt: v => fmtInt(Math.round(v)) }, { label: 'ml/kg', get: p => p.n && wByKey.get(p.key) ? mean(byKey.get(p.key).filter(usable).map(MEASURES.fluid.val).filter(v => v != null)) : null, fmt: v => fmtInt(Math.round(v)) }, { label: 'oz/lb', get: p => p.n && wByKey.get(p.key) ? mean(byKey.get(p.key).filter(usable).map(MEASURES.ozlb.val).filter(v => v != null)) : null, fmt: fmt2 }], periods);
 }
 
-// ---------- growth: WHO weight-for-age (girls) ----------
-const WHO = window.WHO_WFA_GIRLS || [];
+// ---------- growth: WHO standards (girls) ----------
+const WHO = window.WHO_GIRLS || null;
 const WHO_PCTS = [{ p: 3, z: -1.8808 }, { p: 15, z: -1.0364 }, { p: 50, z: 0 }, { p: 85, z: 1.0364 }, { p: 97, z: 1.8808 }];
-function lmsAt(ageDays) { const i = Math.round(ageDays); if (!WHO.length || i < 0 || i >= WHO.length) return null; const r = WHO[i]; return { L: r[1], M: r[2], S: r[3] }; }
-function zFor(kg, ageDays) { const p = lmsAt(ageDays); if (!p || !(kg > 0)) return null; return p.L ? (Math.pow(kg / p.M, p.L) - 1) / (p.L * p.S) : Math.log(kg / p.M) / p.S; }
-function kgAtZ(z, ageDays) { const p = lmsAt(ageDays); if (!p) return null; return p.L ? p.M * Math.pow(1 + p.L * p.S * z, 1 / p.L) : p.M * Math.exp(p.S * z); }
+function lmsDay(table, ageDays) { const i = Math.round(ageDays); if (!table || i < 0 || i >= table.length) return null; const r = table[i]; return { L: r[1], M: r[2], S: r[3] }; }
+function lmsLen(cm) { const t = WHO && WHO.wfl; if (!t || !(cm > 0)) return null; const i = Math.round((cm - 45) * 10); if (i < 0 || i >= t.length) return null; const r = t[i]; return { L: r[1], M: r[2], S: r[3] }; }
+const zFromLMS = (v, p) => !p || !(v > 0) ? null : (p.L ? (Math.pow(v / p.M, p.L) - 1) / (p.L * p.S) : Math.log(v / p.M) / p.S);
+const valAtZ = (z, p) => !p ? null : (p.L ? p.M * Math.pow(1 + p.L * p.S * z, 1 / p.L) : p.M * Math.exp(p.S * z));
+const zFor = (kg, ageDays) => zFromLMS(kg, lmsDay(WHO && WHO.wfa, ageDays));
+const kgAtZ = (z, ageDays) => valAtZ(z, lmsDay(WHO && WHO.wfa, ageDays));
 const pctOfZ = z => 100 * normCdf(z);
 const ordinal = n => { n = Math.round(n); const s = ['th', 'st', 'nd', 'rd'], v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); };
-const pctText = p => p < 1 ? '<1st' : p > 99 ? '>99th' : ordinal(p);
-function extraWeighIns() { const out = []; for (const line of String(settings.extraWeights || '').split(/\n+/)) { const m = /^\s*(\d{4}-\d{2}-\d{2})\s+([\d.]+)\s*(kg|lb|lbs)?\s*$/i.exec(line); if (!m) continue; const v = parseFloat(m[2]); const lbs = /lb/i.test(m[3] || '') ? v : v / LB_KG; out.push({ day: m[1], lbs, source: 'clinic' }); } return out; }
+const pctText = p => p == null ? '–' : p < 1 ? '<1st' : p > 99 ? '>99th' : ordinal(p);
+const zText = z => z == null ? '–' : d3.format('+.2f')(z);
+function parseMeasureList(text) { const out = []; for (const line of String(text || '').split(/\n+/)) { const m = /^\s*(\d{4}-\d{2}-\d{2})\s+([\d.]+)\s*([a-z]*)\s*$/i.exec(line); if (m) out.push({ day: m[1], v: parseFloat(m[2]), unit: m[3].toLowerCase() }); } return out.sort((a, b) => a.day < b.day ? -1 : 1); }
+function extraWeighIns() { return parseMeasureList(settings.extraWeights).map(x => ({ day: x.day, lbs: /lb/.test(x.unit) ? x.v : x.v / LB_KG, source: 'clinic' })); }
 function allWeighIns() { const home = DATA.growth.filter(x => x.lbs != null).map(x => ({ day: x.day, lbs: x.lbs, source: 'home' })); return home.concat(extraWeighIns()).sort((a, b) => a.day < b.day ? -1 : a.day > b.day ? 1 : (a.source === 'clinic' ? 1 : -1)); }
+const toCm = x => x.unit === 'cm' ? x.v : (x.unit === 'in' || x.v < 40 ? x.v * 2.54 : x.v);
+function lengthsCm() { return parseMeasureList(settings.lengths).map(x => ({ day: x.day, cm: toCm(x) })); }
+function headCm() { return parseMeasureList(settings.headCirc).map(x => ({ day: x.day, cm: toCm(x) })); }
 const kgText = kg => isMetric() ? fmt2(kg) + ' kg' : fmt2(kg / LB_KG) + ' lb';
-function pctMeaning(pt, prevPt) {
-  let s = 'The ' + pctText(pt.pct) + ' percentile means about ' + Math.round(pt.pct) + ' of every 100 girls her age weigh less than she does' + (pt.z != null ? ' (z = ' + d3.format('+.2f')(pt.z) + ')' : '') + '. The 3rd to 97th is the typical range; what clinicians watch most is whether she follows a steady curve over time.';
-  if (prevPt) { const dp = pt.pct - prevPt.pct; const days = diffDays(prevPt.day, pt.day); const gain = (pt.kg - prevPt.kg) * 1000 / Math.max(1, days); s += ' Since the ' + fmtDay(prevPt.day) + ' weigh-in she gained about ' + fmtInt(Math.round(gain)) + ' g/day and ' + (Math.abs(dp) < 3 ? 'held her percentile.' : (dp > 0 ? 'moved up ' : 'drifted down ') + fmtInt(Math.round(Math.abs(dp))) + ' percentile points.'); }
-  return s;
+const cmText = cm => isMetric() ? fmt1(cm) + ' cm' : fmt1(cm / 2.54) + ' in';
+// weight on any day, interpolated between weigh-ins (null outside the measured span)
+function weightKgOn(dayK) { const w = allWeighIns(); if (!w.length || dayK < w[0].day || dayK > w[w.length - 1].day) return null; for (let i = 1; i < w.length; i++) { if (w[i].day >= dayK) { const a = w[i - 1], b = w[i]; const span = diffDays(a.day, b.day); const f = span ? diffDays(a.day, dayK) / span : 0; return (a.lbs + f * (b.lbs - a.lbs)) * LB_KG; } } return w[w.length - 1].lbs * LB_KG; }
+function recentGainPerDay(latestDay) { const w = allWeighIns(); const latest = w[w.length - 1]; const ref = w.filter(p => diffDays(p.day, latest.day) >= 21).slice(-1)[0]; if (!ref) return null; return (latest.lbs - ref.lbs) * LB_KG * 1000 / diffDays(ref.day, latest.day); }
+// her growth points with z-scores
+function growthPoints() {
+  const birth = birthDay();
+  const wfa = allWeighIns().map(wi => { const kg = wi.lbs * LB_KG, age = diffDays(birth, wi.day); const z = zFor(kg, age); return { day: wi.day, kg, age, source: wi.source, z, pct: z == null ? null : pctOfZ(z), median: kgAtZ(0, age) }; }).filter(p => p.z != null);
+  const lfa = lengthsCm().map(l => { const age = diffDays(birth, l.day); const z = zFromLMS(l.cm, lmsDay(WHO && WHO.lfa, age)); return { day: l.day, cm: l.cm, age, z, pct: z == null ? null : pctOfZ(z), median: valAtZ(0, lmsDay(WHO && WHO.lfa, age)) }; }).filter(p => p.z != null);
+  const hc = headCm().map(l => { const age = diffDays(birth, l.day); const z = zFromLMS(l.cm, lmsDay(WHO && WHO.hcfa, age)); return { day: l.day, cm: l.cm, age, z, pct: z == null ? null : pctOfZ(z) }; }).filter(p => p.z != null);
+  const wfl = lengthsCm().map(l => { const kg = weightKgOn(l.day); const z = kg ? zFromLMS(kg, lmsLen(l.cm)) : null; return { day: l.day, cm: l.cm, kg, age: diffDays(birth, l.day), z, pct: z == null ? null : pctOfZ(z), medianKg: valAtZ(0, lmsLen(l.cm)) }; }).filter(p => p.z != null);
+  // monthly weight increments against the WHO velocity standard
+  const vel = []; const w = allWeighIns(); if (WHO && WHO.wvel1 && w.length >= 2) { const first = diffDays(birth, w[0].day), last = diffDays(birth, w[w.length - 1].day);
+    for (const iv of WHO.wvel1) { if (iv.startDay < first - 3 || iv.endDay > last) continue; const a = weightKgOn(addDays(birth, Math.max(iv.startDay, first))), b = weightKgOn(addDays(birth, iv.endDay)); if (a == null || b == null) continue; const inc = (b - a) * 1000; const z = zFromLMS(inc + iv.delta, { L: iv.L, M: iv.M, S: iv.S }); vel.push({ label: iv.label, startDay: iv.startDay, endDay: iv.endDay, inc, perDay: inc / (iv.endDay - iv.startDay), median: iv.median, lo: valAtZ(-2, { L: iv.L, M: iv.M, S: iv.S }) - iv.delta, hi: valAtZ(2, { L: iv.L, M: iv.M, S: iv.S }) - iv.delta, z, pct: z == null ? null : pctOfZ(z) }); } }
+  return { wfa, lfa, hc, wfl, vel };
 }
+function zMeaning(kind, p) {
+  const where = p.z <= -2 ? 'below −2 z, which is the usual cut-off for "low"' : p.z <= -1 ? 'between −1 and −2 z, below most girls her age but inside the normal range' : p.z < 1 ? 'within one z of the median, squarely typical' : 'above +1 z';
+  const base = { wfa: 'Weight-for-age compares her weight with girls of the same age.', lfa: 'Length-for-age compares her length with girls of the same age; it tells whether she is small all over or light for her frame.', wfl: 'Weight-for-length compares her weight with girls of the same length regardless of age. It is the thinness measure; below −1.65 z is a threshold clinicians use for faltering weight.', hc: 'Head circumference-for-age; head growth is usually spared in nutritional faltering, so a normal head z alongside low weight z points to nutrition rather than a global growth problem.' }[kind];
+  return base + ' Here she is ' + where + ' (z ' + zText(p.z) + ', ' + pctText(p.pct) + ' percentile).';
+}
+function velMeaning(v) { return v.z <= -2 ? 'Gain in this interval was below the WHO −2 z line, the velocity criterion clinicians use for faltering weight.' : v.z <= -1 ? 'Gain was slower than most girls her age (between −1 and −2 z) but not below the −2 z criterion.' : v.z < 1 ? 'Gain was typical for her age.' : 'Gain was faster than typical: catch-up growth.'; }
 function renderGrowth() {
-  const host = $('#cardGrowth'); if (!WHO.length) { host.classList.add('hidden'); return; } host.classList.remove('hidden');
-  const birth = birthDay(); const pts = allWeighIns().map(wi => { const kg = wi.lbs * LB_KG, age = diffDays(birth, wi.day); const z = zFor(kg, age); return { day: wi.day, kg, age, source: wi.source, z, pct: z == null ? null : pctOfZ(z), median: kgAtZ(0, age) }; }).filter(p => p.z != null);
-  const latest = pts[pts.length - 1], first = pts[0];
+  const host = $('#cardGrowth'); if (!WHO) { host.classList.add('hidden'); return; } host.classList.remove('hidden');
+  const G = growthPoints(); const pts = G.wfa; const latest = pts[pts.length - 1], first = pts[0];
+  const lastL = G.lfa[G.lfa.length - 1], lastWfl = G.wfl[G.wfl.length - 1], lastHc = G.hc[G.hc.length - 1], lastV = G.vel[G.vel.length - 1];
   // headline
   const hv = $('#growthValue'); hv.textContent = ''; const hs = $('#growthSub'); hs.textContent = ''; const facts = $('#growthFacts'); facts.textContent = '';
   const fact = (k, v) => { const r = document.createElement('div'); r.className = 'fact'; const a = document.createElement('span'); a.textContent = k; const b = document.createElement('b'); b.textContent = v; r.append(a, b); facts.appendChild(r); };
   if (latest) {
-    hv.appendChild(document.createTextNode(pctText(latest.pct))); const sm = document.createElement('small'); sm.textContent = 'percentile'; hv.appendChild(sm);
-    let trend; const dp = latest.pct - first.pct;
-    if (pts.length < 2) trend = ''; else if (Math.abs(dp) <= 10) trend = ' She has tracked close to the same curve since the ' + fmtDay(first.day) + ' weigh-in (' + pctText(first.pct) + ').'; else if (dp < 0) trend = ' She has drifted down from the ' + pctText(first.pct) + ' percentile on ' + fmtDay(first.day) + '. Clinicians usually take a closer look when a baby crosses two major percentile lines downward (for example 50th to 15th).'; else trend = ' She has moved up from the ' + pctText(first.pct) + ' percentile on ' + fmtDay(first.day) + '.';
-    hs.textContent = 'Weight-for-age on the WHO girls standard at the latest weigh-in (' + fmtDayY(latest.day) + ', ' + kgText(latest.kg) + ', z = ' + d3.format('+.2f')(latest.z) + ').' + trend;
-    fact('Latest weight', kgText(latest.kg) + (latest.source === 'clinic' ? ' (clinic)' : ' (home)'));
-    fact('WHO median at that age', kgText(latest.median));
-    if (first !== latest) fact('First weigh-in (' + fmtDay(first.day) + ')', kgText(first.kg) + ', ' + pctText(first.pct));
-    const lo = d3.least(pts, p => p.pct), hi = d3.greatest(pts, p => p.pct); if (lo && hi && lo !== hi) fact('Range so far', pctText(lo.pct) + ' (' + fmtDay(lo.day) + ') to ' + pctText(hi.pct) + ' (' + fmtDay(hi.day) + ')');
-    const span = pts.filter(p => diffDays(p.day, latest.day) >= 21); const ref = span.length ? span[span.length - 1] : null;
-    if (ref && ref !== latest) { const gpd = (latest.kg - ref.kg) * 1000 / diffDays(ref.day, latest.day); fact('Gain, ' + fmtDay(ref.day) + ' → ' + fmtDay(latest.day), fmtInt(Math.round(gpd)) + ' g/day (' + fmtInt(Math.round(gpd * 7)) + ' g/week)'); }
+    hv.appendChild(document.createTextNode(zText(latest.z))); const sm = document.createElement('small'); sm.textContent = 'z, weight-for-age'; hv.appendChild(sm);
+    let trend = ''; const dz = latest.z - first.z;
+    if (pts.length >= 2) trend = Math.abs(dz) <= 0.5 ? ' She has tracked close to the same curve since ' + fmtDay(first.day) + ' (z ' + zText(first.z) + ').' : dz < 0 ? ' She has drifted down from z ' + zText(first.z) + ' (' + pctText(first.pct) + ' percentile) on ' + fmtDay(first.day) + ', a fall of ' + fmt1(-dz) + ' z. Clinicians look closer when a baby crosses two major percentile lines or drops more than about 1 z.' : ' She has moved up from z ' + zText(first.z) + ' on ' + fmtDay(first.day) + '.';
+    hs.textContent = pctText(latest.pct) + ' percentile on the WHO girls standard at the latest weigh-in (' + fmtDayY(latest.day) + ', ' + kgText(latest.kg) + ').' + trend;
+    fact('Latest weight', kgText(latest.kg) + (latest.source === 'clinic' ? ' (clinic)' : ' (home)') + ', ' + fmtDay(latest.day));
+    if (lastL) fact('Length (' + fmtDay(lastL.day) + ')', cmText(lastL.cm) + ' · z ' + zText(lastL.z) + ' · ' + pctText(lastL.pct));
+    if (lastWfl) fact('Weight-for-length', 'z ' + zText(lastWfl.z) + ' · ' + pctText(lastWfl.pct) + (lastWfl.z < -1.65 ? ' · below −1.65' : ''));
+    if (lastHc) fact('Head circumference (' + fmtDay(lastHc.day) + ')', cmText(lastHc.cm) + ' · z ' + zText(lastHc.z));
+    if (lastV) fact('Gain, ' + lastV.label.replace(/\s/g, ''), fmtInt(Math.round(lastV.inc)) + ' g (' + fmtInt(Math.round(lastV.perDay)) + ' g/day) · z ' + zText(lastV.z));
+    fact('WHO median weight at her age', kgText(latest.median));
+    const age = diffDays(DATA.last ? birthDay() : birthDay(), latest.day); void age;
   } else { hv.textContent = '–'; hs.textContent = 'No weigh-ins yet.'; }
-  // left: weight vs age with WHO curves
-  const wrap = $('#growthChart'); const W = Math.max(320, wrap.clientWidth || 600), H = 340, m = { t: 14, r: 48, b: 40, l: 46 }, w = W - m.l - m.r, h = H - m.t - m.b;
-  const svg = svgIn(wrap, W, H); const g = svg.append('g').attr('transform', 'translate(' + m.l + ',' + m.t + ')');
-  const maxAge = Math.min(WHO.length - 1, Math.max(120, (latest ? latest.age : 0) + 45)); const x = d3.scaleLinear().domain([0, maxAge]).range([0, w]);
-  const kgY = kg => isMetric() ? kg : kg / LB_KG;
-  const ymaxKg = Math.max(kgAtZ(1.8808, maxAge) || 10, d3.max(pts, p => p.kg) || 0) * 1.04; const y = d3.scaleLinear().domain([0, kgY(ymaxKg)]).nice().range([h, 0]);
-  yAxisLeft(g, y, w, 5, v => v + (isMetric() ? ' kg' : ' lb'));
-  const months = d3.range(0, Math.floor(maxAge / 30.44) + 1); g.append('g').attr('class', 'axis').attr('transform', 'translate(0,' + h + ')').call(d3.axisBottom(x).tickValues(months.map(mo => mo * 30.44)).tickSize(0).tickPadding(8).tickFormat((d, i) => months[i] + (months[i] === 0 ? ' mo' : ''))).call(s => s.select('.domain').remove());
-  g.append('line').attr('x1', 0).attr('x2', w).attr('y1', h).attr('y2', h).style('stroke', 'var(--axis)');
-  const ages = d3.range(0, maxAge + 1, 2); const curve = z => d3.line().x(a => x(a)).y(a => y(kgY(kgAtZ(z, a)))).curve(d3.curveBasis)(ages);
-  const band = (z1, z2) => d3.area().x(a => x(a)).y0(a => y(kgY(kgAtZ(z1, a)))).y1(a => y(kgY(kgAtZ(z2, a)))).curve(d3.curveBasis)(ages);
-  g.append('path').attr('d', band(-1.8808, 1.8808)).style('fill', 'var(--s1)').style('opacity', 0.06); g.append('path').attr('d', band(-1.0364, 1.0364)).style('fill', 'var(--s1)').style('opacity', 0.08);
-  for (const q of WHO_PCTS) { g.append('path').attr('d', curve(q.z)).attr('fill', 'none').style('stroke', q.p === 50 ? 'var(--ink-2)' : 'var(--muted)').attr('stroke-width', q.p === 50 ? 1.5 : 1).style('opacity', q.p === 50 ? 0.9 : 0.7); g.append('text').attr('x', w + 5).attr('y', y(kgY(kgAtZ(q.z, maxAge))) + 4).attr('class', 'ann-label').style('fill', 'var(--muted)').text(ordinal(q.p)); }
-  const hline = d3.line().x(p => x(p.age)).y(p => y(kgY(p.kg)));
-  g.append('path').attr('d', hline(pts)).attr('fill', 'none').style('stroke', 'var(--s1)').attr('stroke-width', 2.5).attr('stroke-linejoin', 'round');
-  g.append('g').selectAll('circle').data(pts).join('circle').attr('cx', p => x(p.age)).attr('cy', p => y(kgY(p.kg))).attr('r', 5).style('fill', p => p.source === 'clinic' ? 'var(--surface)' : 'var(--s1)').style('stroke', p => p.source === 'clinic' ? 'var(--s1)' : 'var(--surface)').attr('stroke-width', 2.5);
-  if (latest) g.append('text').attr('x', x(latest.age) + 12).attr('y', y(kgY(latest.kg)) + 16).attr('class', 'ann-label').style('fill', 'var(--ink)').style('font-weight', 650).style('font-size', '12px').text(pctText(latest.pct) + ' pct');
-  const tipRows = p => { const i = pts.indexOf(p); const prev = i > 0 ? pts[i - 1] : null; return [['Weight', kgText(p.kg), 'var(--s1)'], ['Age', ageLabel(p.day)], ['Percentile', pctText(p.pct)], ['z-score', d3.format('+.2f')(p.z)], ['WHO median at this age', kgText(p.median)], ['Source', p.source === 'clinic' ? 'clinic scale' : 'home (Huckleberry)'], [pctMeaning(p, prev)]]; };
-  if (pts.length) { const del = d3.Delaunay.from(pts, p => x(p.age), p => y(kgY(p.kg))); const hl = g.append('circle').attr('r', 8).style('fill', 'none').style('stroke', 'var(--ink)').attr('stroke-width', 2).style('opacity', 0).style('pointer-events', 'none');
-    svg.append('rect').attr('x', m.l).attr('y', m.t).attr('width', w).attr('height', h).attr('fill', 'transparent').on('pointermove', ev => { const [px, py] = d3.pointer(ev, g.node()); const p = pts[del.find(px, py)]; if (!p) return; hl.attr('cx', x(p.age)).attr('cy', y(kgY(p.kg))).style('opacity', 1); showTip(ev, 'Weigh-in, ' + fmtDayY(p.day), tipRows(p)); }).on('pointerleave', () => { hl.style('opacity', 0); hideTip(); }); }
-  // right: percentile over time
-  const wrap2 = $('#pctChart'); const W2 = Math.max(260, wrap2.clientWidth || 360), m2 = { t: 14, r: 16, b: 40, l: 40 }, w2 = W2 - m2.l - m2.r, h2 = H - m2.t - m2.b;
-  const svg2 = svgIn(wrap2, W2, H); const g2 = svg2.append('g').attr('transform', 'translate(' + m2.l + ',' + m2.t + ')');
-  const x2 = d3.scaleTime().domain(pts.length ? [fromKey(pts[0].day), d3.timeDay.offset(fromKey(latest.day), 14)] : [new Date(), new Date()]).range([0, w2]); const y2 = d3.scaleLinear().domain([0, 100]).range([h2, 0]);
-  g2.append('rect').attr('x', 0).attr('width', w2).attr('y', y2(97)).attr('height', y2(3) - y2(97)).style('fill', 'var(--s1)').style('opacity', 0.06); g2.append('rect').attr('x', 0).attr('width', w2).attr('y', y2(85)).attr('height', y2(15) - y2(85)).style('fill', 'var(--s1)').style('opacity', 0.08);
-  for (const q of WHO_PCTS) { g2.append('line').attr('x1', 0).attr('x2', w2).attr('y1', y2(q.p)).attr('y2', y2(q.p)).style('stroke', q.p === 50 ? 'var(--ink-2)' : 'var(--muted)').attr('stroke-width', q.p === 50 ? 1.5 : 1).style('opacity', 0.7); }
-  g2.append('g').attr('class', 'axis').call(d3.axisLeft(y2).tickValues([3, 15, 50, 85, 97]).tickSize(0).tickPadding(6).tickFormat(ordinal)).call(s => s.select('.domain').remove());
-  g2.append('g').attr('class', 'axis').attr('transform', 'translate(0,' + h2 + ')').call(d3.axisBottom(x2).ticks(5).tickSize(0).tickPadding(8).tickFormat(d3.timeFormat('%b'))).call(s => s.select('.domain').remove());
-  g2.append('line').attr('x1', 0).attr('x2', w2).attr('y1', h2).attr('y2', h2).style('stroke', 'var(--axis)');
-  const pline = d3.line().x(p => x2(fromKey(p.day))).y(p => y2(p.pct)).curve(d3.curveMonotoneX);
-  g2.append('path').attr('d', pline(pts)).attr('fill', 'none').style('stroke', 'var(--s1)').attr('stroke-width', 2.5).attr('stroke-linejoin', 'round');
-  g2.append('g').selectAll('circle').data(pts).join('circle').attr('cx', p => x2(fromKey(p.day))).attr('cy', p => y2(p.pct)).attr('r', 5).style('fill', p => p.source === 'clinic' ? 'var(--surface)' : 'var(--s1)').style('stroke', p => p.source === 'clinic' ? 'var(--s1)' : 'var(--surface)').attr('stroke-width', 2.5);
-  if (pts.length) { const del2 = d3.Delaunay.from(pts, p => x2(fromKey(p.day)), p => y2(p.pct)); const hl2 = g2.append('circle').attr('r', 8).style('fill', 'none').style('stroke', 'var(--ink)').attr('stroke-width', 2).style('opacity', 0).style('pointer-events', 'none');
-    svg2.append('rect').attr('x', m2.l).attr('y', m2.t).attr('width', w2).attr('height', h2).attr('fill', 'transparent').on('pointermove', ev => { const [px, py] = d3.pointer(ev, g2.node()); const p = pts[del2.find(px, py)]; if (!p) return; hl2.attr('cx', x2(fromKey(p.day))).attr('cy', y2(p.pct)).style('opacity', 1); showTip(ev, 'Weigh-in, ' + fmtDayY(p.day), tipRows(p)); }).on('pointerleave', () => { hl2.style('opacity', 0); hideTip(); }); }
-  g2.append('text').attr('x', 4).attr('y', 12).attr('class', 'ann-label').style('fill', 'var(--muted)').text('her percentile over time');
+  // --- chart 1: weight-for-age curves ---
+  const H = 300;
+  const monthsAxis = (g, x, h, maxAge) => { const months = d3.range(0, Math.floor(maxAge / 30.44) + 1); g.append('g').attr('class', 'axis').attr('transform', 'translate(0,' + h + ')').call(d3.axisBottom(x).tickValues(months.map(mo => mo * 30.44)).tickSize(0).tickPadding(8).tickFormat((d, i) => months[i] + (months[i] === 0 ? ' mo' : ''))).call(s => s.select('.domain').remove()); g.append('line').attr('x1', 0).attr('x2', x.range()[1]).attr('y1', h).attr('y2', h).style('stroke', 'var(--axis)'); };
+  const curveChart = (sel, table, series, valOf, unitText, labelLatest) => {
+    const wrap = $(sel); const W = Math.max(300, wrap.clientWidth || 560), m = { t: 14, r: 46, b: 40, l: 46 }, w = W - m.l - m.r, h = H - m.t - m.b;
+    const svg = svgIn(wrap, W, H); const g = svg.append('g').attr('transform', 'translate(' + m.l + ',' + m.t + ')');
+    const maxAge = Math.min(table.length - 1, Math.max(120, (series.length ? series[series.length - 1].age : 0) + 45)); const x = d3.scaleLinear().domain([0, maxAge]).range([0, w]);
+    const conv = v => isMetric() ? v : unitText === 'kg' ? v / LB_KG : v / 2.54; const unit = isMetric() ? unitText : (unitText === 'kg' ? 'lb' : 'in');
+    const top = valAtZ(1.8808, lmsDay(table, maxAge)); const y = d3.scaleLinear().domain([conv(valAtZ(-3, lmsDay(table, 0))) * 0.85, conv(Math.max(top, d3.max(series, valOf) || 0)) * 1.03]).nice().range([h, 0]);
+    yAxisLeft(g, y, w, 5, v => v + ' ' + unit); monthsAxis(g, x, h, maxAge);
+    const ages = d3.range(0, maxAge + 1, 2); const curve = z => d3.line().x(a => x(a)).y(a => y(conv(valAtZ(z, lmsDay(table, a))))).curve(d3.curveBasis)(ages);
+    const band = (z1, z2) => d3.area().x(a => x(a)).y0(a => y(conv(valAtZ(z1, lmsDay(table, a))))).y1(a => y(conv(valAtZ(z2, lmsDay(table, a))))).curve(d3.curveBasis)(ages);
+    g.append('path').attr('d', band(-1.8808, 1.8808)).style('fill', 'var(--s1)').style('opacity', 0.06); g.append('path').attr('d', band(-1.0364, 1.0364)).style('fill', 'var(--s1)').style('opacity', 0.08);
+    for (const q of WHO_PCTS) { g.append('path').attr('d', curve(q.z)).attr('fill', 'none').style('stroke', q.p === 50 ? 'var(--ink-2)' : 'var(--muted)').attr('stroke-width', q.p === 50 ? 1.5 : 1).style('opacity', q.p === 50 ? 0.9 : 0.7); g.append('text').attr('x', w + 5).attr('y', y(conv(valAtZ(q.z, lmsDay(table, maxAge)))) + 4).attr('class', 'ann-label').style('fill', 'var(--muted)').text(ordinal(q.p)); }
+    g.append('path').attr('d', d3.line().x(p => x(p.age)).y(p => y(conv(valOf(p))))(series)).attr('fill', 'none').style('stroke', 'var(--s1)').attr('stroke-width', 2.5).attr('stroke-linejoin', 'round');
+    g.append('g').selectAll('circle').data(series).join('circle').attr('cx', p => x(p.age)).attr('cy', p => y(conv(valOf(p)))).attr('r', 5).style('fill', p => p.source === 'clinic' ? 'var(--surface)' : 'var(--s1)').style('stroke', p => p.source === 'clinic' ? 'var(--s1)' : 'var(--surface)').attr('stroke-width', 2.5);
+    const last = series[series.length - 1]; if (last) g.append('text').attr('x', x(last.age) + 12).attr('y', y(conv(valOf(last))) + 16).attr('class', 'ann-label').style('fill', 'var(--ink)').style('font-weight', 650).style('font-size', '12px').text(labelLatest(last));
+    return { svg, g, x, y: p => y(conv(valOf(p))), m, w, h };
+  };
+  const tipWfa = p => { const i = pts.indexOf(p); const prev = i > 0 ? pts[i - 1] : null; const rows = [['Weight', kgText(p.kg), 'var(--s1)'], ['Age', ageLabel(p.day)], ['z-score', zText(p.z)], ['Percentile', pctText(p.pct)], ['WHO median at this age', kgText(p.median)], ['Source', p.source === 'clinic' ? 'clinic scale' : 'home (Huckleberry)'], [zMeaning('wfa', p)]]; if (prev) { const gain = (p.kg - prev.kg) * 1000 / Math.max(1, diffDays(prev.day, p.day)); rows.push(['Since the ' + fmtDay(prev.day) + ' weigh-in she gained about ' + fmtInt(Math.round(gain)) + ' g/day and her z moved ' + d3.format('+.2f')(p.z - prev.z) + '.']); } return rows; };
+  const c1 = curveChart('#growthChart', WHO.wfa, pts, p => p.kg, 'kg', p => pctText(p.pct) + ' pct');
+  const hover = (c, series, tipRows, title) => { if (!series.length) return; const del = d3.Delaunay.from(series, p => c.x(p.age), p => c.y(p)); const hl = c.g.append('circle').attr('r', 8).style('fill', 'none').style('stroke', 'var(--ink)').attr('stroke-width', 2).style('opacity', 0).style('pointer-events', 'none'); c.svg.append('rect').attr('x', c.m.l).attr('y', c.m.t).attr('width', c.w).attr('height', c.h).attr('fill', 'transparent').on('pointermove', ev => { const [px, py] = d3.pointer(ev, c.g.node()); const p = series[del.find(px, py)]; if (!p) return; hl.attr('cx', c.x(p.age)).attr('cy', c.y(p)).style('opacity', 1); showTip(ev, title(p), tipRows(p)); }).on('pointerleave', () => { hl.style('opacity', 0); hideTip(); }); };
+  hover(c1, pts, tipWfa, p => 'Weigh-in, ' + fmtDayY(p.day));
+  // --- chart 2: length-for-age curves ---
+  const c2 = curveChart('#lfaChart', WHO.lfa, G.lfa, p => p.cm, 'cm', p => pctText(p.pct) + ' pct');
+  hover(c2, G.lfa, p => [['Length', cmText(p.cm), 'var(--s1)'], ['Age', ageLabel(p.day)], ['z-score', zText(p.z)], ['Percentile', pctText(p.pct)], ['WHO median at this age', cmText(p.median)], [zMeaning('lfa', p)]], p => 'Length, ' + fmtDayY(p.day));
+  // --- z-score panels ---
+  const zPanel = (sel, title, series, kind) => {
+    const wrap = $(sel); wrap.textContent = ''; const h3 = document.createElement('h3'); h3.textContent = title; wrap.appendChild(h3); const cur = document.createElement('div'); cur.className = 'cur'; const last = series[series.length - 1]; cur.textContent = last ? 'latest z ' + zText(last.z) + ' · ' + pctText(last.pct) + ' percentile (' + fmtDay(last.day) + ')' : 'no measurements entered'; wrap.appendChild(cur);
+    const ch = document.createElement('div'); ch.className = 'chart'; wrap.appendChild(ch); if (!series.length) return;
+    const W = Math.max(220, ch.clientWidth || 300), Hh = 150, m = { t: 8, r: 10, b: 22, l: 36 }, w = W - m.l - m.r, h = Hh - m.t - m.b;
+    const svg = svgIn(ch, W, Hh); const g = svg.append('g').attr('transform', 'translate(' + m.l + ',' + m.t + ')');
+    const x = d3.scaleTime().domain([fromKey(birthDay()), d3.timeDay.offset(fromKey(DATA.last), 7)]).range([0, w]); const y = d3.scaleLinear().domain([Math.min(-3, d3.min(series, p => p.z) - 0.3), Math.max(2, d3.max(series, p => p.z) + 0.3)]).range([h, 0]);
+    g.append('rect').attr('x', 0).attr('width', w).attr('y', y(2)).attr('height', y(-2) - y(2)).style('fill', 'var(--s1)').style('opacity', 0.07);
+    for (const z of [-2, -1, 0, 1, 2]) if (z >= y.domain()[0] && z <= y.domain()[1]) g.append('line').attr('x1', 0).attr('x2', w).attr('y1', y(z)).attr('y2', y(z)).style('stroke', z === 0 ? 'var(--ink-2)' : 'var(--grid)').attr('stroke-width', 1);
+    g.append('g').attr('class', 'axis').call(d3.axisLeft(y).tickValues([-3, -2, -1, 0, 1, 2].filter(z => z >= y.domain()[0] && z <= y.domain()[1])).tickSize(0).tickPadding(6).tickFormat(d3.format('+d'))).call(s => s.select('.domain').remove());
+    g.append('g').attr('class', 'axis').attr('transform', 'translate(0,' + h + ')').call(d3.axisBottom(x).ticks(4).tickSize(0).tickPadding(6).tickFormat(d3.timeFormat('%b'))).call(s => s.select('.domain').remove());
+    g.append('path').attr('d', d3.line().x(p => x(fromKey(p.day))).y(p => y(p.z)).curve(d3.curveMonotoneX)(series)).attr('fill', 'none').style('stroke', 'var(--s1)').attr('stroke-width', 2).attr('stroke-linejoin', 'round');
+    g.append('g').selectAll('circle').data(series).join('circle').attr('cx', p => x(fromKey(p.day))).attr('cy', p => y(p.z)).attr('r', 4).style('fill', p => p.source === 'clinic' ? 'var(--surface)' : 'var(--s1)').style('stroke', p => p.source === 'clinic' ? 'var(--s1)' : 'var(--surface)').attr('stroke-width', 2);
+    if (kind === 'wfl') g.append('line').attr('x1', 0).attr('x2', w).attr('y1', y(-1.65)).attr('y2', y(-1.65)).style('stroke', 'var(--div-neg)').style('opacity', 0.7).attr('stroke-width', 1);
+    const del = d3.Delaunay.from(series, p => x(fromKey(p.day)), p => y(p.z)); const hl = g.append('circle').attr('r', 7).style('fill', 'none').style('stroke', 'var(--ink)').attr('stroke-width', 2).style('opacity', 0).style('pointer-events', 'none');
+    svg.append('rect').attr('x', m.l).attr('y', m.t).attr('width', w).attr('height', h).attr('fill', 'transparent').on('pointermove', ev => { const [px, py] = d3.pointer(ev, g.node()); const p = series[del.find(px, py)]; if (!p) return; hl.attr('cx', x(fromKey(p.day))).attr('cy', y(p.z)).style('opacity', 1); const rows = [['z-score', zText(p.z), 'var(--s1)'], ['Percentile', pctText(p.pct)]]; if (p.kg != null && kind !== 'wfa') rows.push(['Weight used', kgText(p.kg)]); if (p.cm != null) rows.push(['Length', cmText(p.cm)]); if (p.kg != null && kind === 'wfa') rows.push(['Weight', kgText(p.kg)]); rows.push(['Age', ageLabel(p.day)], [zMeaning(kind, p)]); showTip(ev, title + ', ' + fmtDayY(p.day), rows); }).on('pointerleave', () => { hl.style('opacity', 0); hideTip(); });
+  };
+  zPanel('#zWfa', 'Weight-for-age z', pts, 'wfa'); zPanel('#zLfa', 'Length-for-age z', G.lfa, 'lfa'); zPanel('#zWfl', 'Weight-for-length z', G.wfl, 'wfl'); zPanel('#zHc', 'Head circumference z', G.hc, 'hc');
+  // --- velocity vs WHO ---
+  { const wrap = $('#velChart'); const W = Math.max(320, wrap.clientWidth || 600), Hv = 240, m = { t: 14, r: 16, b: 40, l: 56 }, w = W - m.l - m.r, h = Hv - m.t - m.b;
+    const svg = svgIn(wrap, W, Hv); const g = svg.append('g').attr('transform', 'translate(' + m.l + ',' + m.t + ')');
+    if (!G.vel.length) g.append('text').attr('x', w / 2).attr('y', h / 2).attr('text-anchor', 'middle').attr('class', 'ann-label').text('Needs weigh-ins spanning at least one full month');
+    else {
+      const x = d3.scaleBand().domain(G.vel.map(v => v.label)).range([0, w]).paddingInner(0.4).paddingOuter(0.2); const y = d3.scaleLinear().domain([Math.min(0, d3.min(G.vel, v => Math.min(v.inc, v.lo))) * 1.1, d3.max(G.vel, v => Math.max(v.inc, v.hi)) * 1.1]).nice().range([h, 0]);
+      yAxisLeft(g, y, w, 5, v => fmtInt(v) + ' g'); g.append('g').attr('class', 'axis').attr('transform', 'translate(0,' + h + ')').call(d3.axisBottom(x).tickSize(0).tickPadding(8).tickFormat(l => l.replace(/\s/g, ''))).call(s => s.select('.domain').remove());
+      g.append('g').selectAll('rect').data(G.vel).join('rect').attr('x', v => x(v.label)).attr('width', x.bandwidth()).attr('y', v => y(v.hi)).attr('height', v => Math.max(1, y(v.lo) - y(v.hi))).attr('rx', 3).style('fill', 'var(--grid)').style('opacity', 0.9);
+      g.append('g').selectAll('line').data(G.vel).join('line').attr('x1', v => x(v.label)).attr('x2', v => x(v.label) + x.bandwidth()).attr('y1', v => y(v.median)).attr('y2', v => y(v.median)).style('stroke', 'var(--ink-2)').attr('stroke-width', 1.5);
+      g.append('line').attr('x1', 0).attr('x2', w).attr('y1', y(0)).attr('y2', y(0)).style('stroke', 'var(--axis)');
+      const bw = Math.min(24, x.bandwidth());
+      g.append('g').selectAll('path').data(G.vel).join('path').attr('class', 'bar').attr('d', v => roundedBar(x(v.label) + (x.bandwidth() - bw) / 2, y(Math.max(0, v.inc)), bw, Math.abs(y(v.inc) - y(0)), 4)).style('fill', v => v.z <= -2 ? 'var(--div-neg)' : 'var(--s1)')
+        .on('pointermove', (ev, v) => showTip(ev, 'Weight gain, ' + v.label, [['Her gain', fmtInt(Math.round(v.inc)) + ' g (' + fmtInt(Math.round(v.perDay)) + ' g/day)', 'var(--s1)'], ['WHO median', fmtInt(Math.round(v.median)) + ' g'], ['WHO −2 to +2 z', fmtInt(Math.round(v.lo)) + ' to ' + fmtInt(Math.round(v.hi)) + ' g'], ['z-score', zText(v.z)], ['Percentile', pctText(v.pct)], [velMeaning(v) + ' Interval weights are interpolated between her actual weigh-ins.']])).on('pointerleave', hideTip);
+      g.append('g').selectAll('text').data(G.vel).join('text').attr('x', v => x(v.label) + x.bandwidth() / 2).attr('y', v => y(Math.max(0, v.inc)) - 6).attr('text-anchor', 'middle').attr('class', 'ann-label').style('fill', 'var(--ink)').style('font-weight', 600).text(v => zText(v.z));
+    } }
   // legend, text, table
   const lg = $('#growthLegend'); lg.textContent = '';
   const key = (type, color, label, extra) => { const s = document.createElement('span'); s.className = 'key'; const i = document.createElement('span'); i.className = type; if (color) i.style.background = color; if (extra) Object.assign(i.style, extra); s.appendChild(i); s.appendChild(document.createTextNode(label)); lg.appendChild(s); };
-  key('sw', 'var(--s1)', 'home weigh-in', { borderRadius: '50%' }); key('sw', 'var(--surface)', 'clinic weigh-in', { borderRadius: '50%', border: '2px solid var(--s1)' }); key('ln', 'var(--ink-2)', 'WHO 50th percentile'); key('sw', 'var(--s1)', '15th–85th', { opacity: 0.25 }); key('sw', 'var(--s1)', '3rd–97th', { opacity: 0.14 });
-  $('#growthDesc').textContent = 'Every weigh-in on record (all dates, regardless of the range filter) plotted against the WHO Child Growth Standards for girls, which describe how healthy breastfed infants grow. Home weights are from the Huckleberry log; clinic weights are entered in Settings. Home and clinic scales can differ by a few ounces, so compare like with like when reading small changes.';
-  makeTable('#growthTable', [{ label: 'Date', get: p => fmtDayY(p.day) }, { label: 'Age', get: p => ageLabel(p.day) }, { label: 'Weight', get: p => p.kg, fmt: v => kgText(v) }, { label: 'Source', get: p => p.source }, { label: 'Percentile', get: p => p.pct, fmt: v => pctText(v) }, { label: 'z-score', get: p => p.z, fmt: d3.format('+.2f') }, { label: 'WHO median', get: p => p.median, fmt: v => kgText(v) }], pts);
+  key('sw', 'var(--s1)', 'home measurement', { borderRadius: '50%' }); key('sw', 'var(--surface)', 'clinic measurement', { borderRadius: '50%', border: '2px solid var(--s1)' }); key('ln', 'var(--ink-2)', 'WHO median'); key('sw', 'var(--s1)', 'WHO 15th–85th / −2 to +2 z', { opacity: 0.25 }); key('sw', 'var(--s1)', '3rd–97th', { opacity: 0.14 }); key('ln', 'var(--div-neg)', '−1.65 z weight-for-length threshold');
+  $('#growthDesc').textContent = 'All measurements on record (every date, regardless of the range filter) against the WHO Child Growth Standards for girls. z-scores are standard deviations from the WHO median and change evenly across the whole range, so they show movement that percentiles hide near the bottom of the chart. Weights come from the Huckleberry log plus clinic weights in Settings; lengths and head circumference are entered in Settings. Monthly gain compares her weight change over each WHO one-month interval (interpolated between weigh-ins) with the WHO weight-velocity standard.';
+  const rows = pts.map(p => ({ kind: 'weight', day: p.day, age: ageLabel(p.day), value: kgText(p.kg), z: p.z, pct: p.pct, source: p.source })).concat(G.lfa.map(p => ({ kind: 'length', day: p.day, age: ageLabel(p.day), value: cmText(p.cm), z: p.z, pct: p.pct, source: 'entered' })), G.wfl.map(p => ({ kind: 'weight-for-length', day: p.day, age: ageLabel(p.day), value: kgText(p.kg) + ' at ' + cmText(p.cm), z: p.z, pct: p.pct, source: 'derived' })), G.hc.map(p => ({ kind: 'head circumference', day: p.day, age: ageLabel(p.day), value: cmText(p.cm), z: p.z, pct: p.pct, source: 'entered' })), G.vel.map(v => ({ kind: 'gain ' + v.label.replace(/\s/g, ''), day: addDays(birthDay(), v.endDay), age: ageLabel(addDays(birthDay(), v.endDay)), value: fmtInt(Math.round(v.inc)) + ' g (median ' + fmtInt(Math.round(v.median)) + ')', z: v.z, pct: v.pct, source: 'interpolated' }))).sort((a, b) => a.day < b.day ? -1 : 1);
+  makeTable('#growthTable', [{ label: 'Date', get: r => fmtDayY(r.day) }, { label: 'Measure', get: r => r.kind }, { label: 'Age', get: r => r.age }, { label: 'Value', get: r => r.value }, { label: 'z-score', get: r => r.z, fmt: zText }, { label: 'Percentile', get: r => r.pct, fmt: pctText }, { label: 'Source', get: r => r.source }], rows);
+  return G;
 }
+
+// ---------- flags + clinic summary ----------
+function tQuant(p, df) { let lo = -10, hi = 10; for (let i = 0; i < 60; i++) { const mid = (lo + hi) / 2; if (tCdf(mid, df) < p) lo = mid; else hi = mid; } return (lo + hi) / 2; }
+function computeFlags(days, G) {
+  const flags = []; const ok = days.filter(usable); const lo = +settings.needsKcalLow;
+  if (lo) { let streak = 0; for (let i = ok.length - 1; i >= 0; i--) { const v = MEASURES.kcal.val(ok[i]); if (v != null && v < lo) streak++; else break; } if (streak >= 3) flags.push({ level: 'warn', text: 'Formula calories below the ' + lo + ' kcal/kg/day floor for ' + streak + ' straight full days (through ' + fmtDay(ok[ok.length - 1].day) + ').' }); }
+  const w = allWeighIns(); if (w.length) { const stale = diffDays(w[w.length - 1].day, DATA.last); if (stale > 14) flags.push({ level: 'info', text: 'Last weigh-in is ' + stale + ' days old (' + fmtDay(w[w.length - 1].day) + '); per-kg figures assume no gain since then. A weekly home weight on the same scale would tighten them.' }); }
+  if (G) { const v = G.vel[G.vel.length - 1]; if (v && v.z <= -2) flags.push({ level: 'warn', text: 'Weight gain over ' + v.label.replace(/\s/g, '') + ' was below the WHO −2 z velocity line (z ' + zText(v.z) + ').' }); const wfl = G.wfl[G.wfl.length - 1]; if (wfl && wfl.z < -1.65) flags.push({ level: 'warn', text: 'Weight-for-length z ' + zText(wfl.z) + ' on ' + fmtDay(wfl.day) + ' is below the −1.65 threshold used for faltering weight.' }); const wfa = G.wfa[G.wfa.length - 1]; if (wfa && wfa.z <= -2) flags.push({ level: 'warn', text: 'Weight-for-age z ' + zText(wfa.z) + ' is at or below −2.' }); }
+  return flags;
+}
+function renderFlags(flags) { const el = $('#flags'); el.textContent = ''; if (!flags.length) { el.classList.add('quiet'); el.textContent = 'No active flags: calories at or above the floor for the last 3 full days, weight current, growth measures above the usual thresholds.'; return; } el.classList.remove('quiet'); for (const f of flags) { const d = document.createElement('div'); d.className = 'flag ' + f.level; d.textContent = (f.level === 'warn' ? '⚠ ' : 'ⓘ ') + f.text; el.appendChild(d); } }
+function renderSummary(days, G, flags) {
+  const ok = days.filter(usable); const last7 = ok.slice(-7), last28 = ok.slice(-28); const el = $('#summaryGrid'); el.textContent = '';
+  const item = (k, v, sub) => { const d = document.createElement('div'); d.className = 'sum'; const a = document.createElement('div'); a.className = 'label'; a.textContent = k; const b = document.createElement('div'); b.className = 'val'; b.textContent = v; d.append(a, b); if (sub) { const c = document.createElement('div'); c.className = 'sub'; c.textContent = sub; d.appendChild(c); } el.appendChild(d); };
+  const avg = (list, f) => { const v = list.map(f).filter(x => x != null); return v.length ? mean(v) : null; };
+  const wfa = G && G.wfa[G.wfa.length - 1], lfa = G && G.lfa[G.lfa.length - 1], wfl = G && G.wfl[G.wfl.length - 1], vel = G && G.vel[G.vel.length - 1];
+  item('Age', ageLabel(DATA.last), 'data through ' + fmtDayY(DATA.last));
+  if (wfa) item('Weight', kgText(wfa.kg), fmtDay(wfa.day) + ' · z ' + zText(wfa.z) + ' · ' + pctText(wfa.pct) + ' pct');
+  if (lfa) item('Length', cmText(lfa.cm), fmtDay(lfa.day) + ' · z ' + zText(lfa.z) + ' · ' + pctText(lfa.pct) + ' pct');
+  if (wfl) item('Weight-for-length', 'z ' + zText(wfl.z), pctText(wfl.pct) + ' pct' + (wfl.z < -1.65 ? ' · below −1.65' : ''));
+  if (vel) item('Gain ' + vel.label.replace(/\s/g, ''), fmtInt(Math.round(vel.perDay)) + ' g/day', 'WHO median ' + fmtInt(Math.round(vel.median / (vel.endDay - vel.startDay))) + ' g/day · z ' + zText(vel.z));
+  const k7 = avg(last7, MEASURES.kcal.val), k28 = avg(last28, MEASURES.kcal.val); if (k7 != null) item('Calories, 7 / 28 days', fmtInt(Math.round(k7)) + ' / ' + fmtInt(Math.round(k28)) + ' kcal/kg/day', settings.needsKcalLow ? 'needs ' + settings.needsKcalLow + '–' + settings.needsKcalHigh + ', prescribed ' + settings.prescribedKcal : '');
+  const f7 = avg(last7, MEASURES.fluid.val), f28 = avg(last28, MEASURES.fluid.val); if (f7 != null) item('Fluid, 7 / 28 days', fmtInt(Math.round(f7)) + ' / ' + fmtInt(Math.round(f28)) + ' ml/kg/day', settings.needsFluid ? 'needs ' + settings.needsFluid + '+, prescribed ' + settings.prescribedFluid : '');
+  const o7 = avg(last7, d => d.oz), o28 = avg(last28, d => d.oz); if (o7 != null) item('Volume, 7 / 28 days', fmtOz(o7) + ' / ' + fmtOz(o28) + ' oz/day', fmt1(avg(last7, d => d.feeds)) + ' feeds/day, ' + fmt2(avg(last7, d => d.ozFeeds ? d.oz / d.ozFeeds : null)) + ' oz/feed');
+  item('Formula', kcalPerOz(DATA.last) + ' kcal/oz', settings.fortStart ? 'fortified since ' + fmtDay(settings.fortStart) : 'standard mix');
+  const protein = proteinPerKg(last7); if (protein != null) item('Protein', fmt1(protein) + ' g/kg/day', 'from formula label' + (settings.proteinLow ? ' · target ' + settings.proteinLow + '–' + settings.proteinHigh : ''));
+  const med = medPerKg(); if (med) item(med.name, med.text, med.sub);
+  const ev = events.slice().sort((a, b) => a.start < b.start ? -1 : 1); const evEl = $('#summaryEvents'); evEl.textContent = ''; for (const e of ev) { const li = document.createElement('li'); li.textContent = fmtDay(e.start) + (e.end ? ' – ' + fmtDay(e.end) : '') + ': ' + e.name + (e.notes ? ' — ' + e.notes : ''); evEl.appendChild(li); }
+  const fl = $('#summaryFlags'); fl.textContent = ''; for (const f of flags) { const li = document.createElement('li'); li.textContent = f.text; fl.appendChild(li); } if (!flags.length) { const li = document.createElement('li'); li.textContent = 'None active.'; fl.appendChild(li); }
+  const notes = $('#summaryNotes'); notes.textContent = ''; const paras = String(settings.notes || '').split(/\n\s*\n/).map(s => s.trim()).filter(Boolean); $('#summaryNotesWrap').classList.toggle('hidden', !paras.length); for (const p of paras) { const d = document.createElement('p'); d.textContent = p; notes.appendChild(d); }
+}
+function proteinPerKg(list) { const g100 = +settings.proteinPer100ml; if (!g100 || !list.length) return null; const v = list.filter(d => d.weightLbs).map(d => d.oz * ML_OZ / 100 * g100 * (kcalPerOz(d.day) / (+settings.kcalBase || 20)) / (d.weightLbs * LB_KG)); return v.length ? mean(v) : null; }
+function medPerKg() { if (!settings.medName || !settings.medDoseMg) return null; const w = allWeighIns(); if (!w.length) return null; const kg = w[w.length - 1].lbs * LB_KG; const perDay = +settings.medDoseMg * (+settings.medDosesPerDay || 1); return { name: settings.medName, text: fmt2(perDay / kg) + ' mg/kg/day', sub: settings.medDoseMg + ' mg × ' + (settings.medDosesPerDay || 1) + '/day at ' + kgText(kg) + (settings.medNote ? ' · ' + settings.medNote : '') }; }
 
 // ---------- orchestration ----------
 function renderAll() {
   const days = filteredDays(); renderHeader(); $('#btnResetCsv').classList.toggle('hidden', !localStorage.getItem(LS.csv));
   if (!days.length) { $('#kpis').textContent = ''; $('#intakeChart').textContent = 'No days in range.'; return; }
-  renderHero(days); renderGrowth(); renderKpis(days); const periods = renderIntake(days); renderSmallMultiples(days, periods); renderHeat(days); renderFeedSize(days); renderLag(days); renderEvents();
+  renderHero(days); const G = renderGrowth(); const flags = computeFlags(days, G); renderFlags(flags); renderSummary(days, G, flags); renderKpis(days); const periods = renderIntake(days); renderSmallMultiples(days, periods); renderHeat(days); renderFeedSize(days); renderLag(days); renderEvents();
 }
 // ---------- data source: plain bundle, encrypted bundle, or a CSV loaded in this browser ----------
 let BASE_RAW = null, BUNDLED_EVENTS = null;
@@ -1350,8 +1493,9 @@ $('#fileCsv').addEventListener('change', async e => {
 });
 $('#btnResetCsv').addEventListener('click', () => { localStorage.removeItem(LS.csv); init(); });
 $('#btnPrint').addEventListener('click', () => window.print());
+$('#btnPrintSummary').addEventListener('click', () => { document.body.classList.add('print-summary'); window.print(); }); window.addEventListener('afterprint', () => document.body.classList.remove('print-summary'));
 let themeBeforePrint = null; window.addEventListener('beforeprint', () => { themeBeforePrint = document.documentElement.dataset.theme || ''; document.documentElement.dataset.theme = 'light'; renderAll(); }); window.addEventListener('afterprint', () => { if (themeBeforePrint) document.documentElement.dataset.theme = themeBeforePrint; else delete document.documentElement.dataset.theme; renderAll(); });
-const SET_FIELDS = { name: 'setName', birth: 'setBirth', kcalBase: 'setKcalBase', kcalFort: 'setKcalFort', fortStart: 'setFortStart', needsKcalLow: 'setNeedsKcalLow', needsKcalHigh: 'setNeedsKcalHigh', prescribedKcal: 'setPrescribedKcal', needsFluid: 'setNeedsFluid', prescribedFluid: 'setPrescribedFluid', targetsNote: 'setTargetsNote', extraWeights: 'setExtraWeights' };
+const SET_FIELDS = { name: 'setName', birth: 'setBirth', kcalBase: 'setKcalBase', kcalFort: 'setKcalFort', fortStart: 'setFortStart', needsKcalLow: 'setNeedsKcalLow', needsKcalHigh: 'setNeedsKcalHigh', prescribedKcal: 'setPrescribedKcal', needsFluid: 'setNeedsFluid', prescribedFluid: 'setPrescribedFluid', targetsNote: 'setTargetsNote', extraWeights: 'setExtraWeights', lengths: 'setLengths', headCirc: 'setHeadCirc', proteinPer100ml: 'setProteinPer100ml', proteinLow: 'setProteinLow', proteinHigh: 'setProteinHigh', medName: 'setMedName', medDoseMg: 'setMedDoseMg', medDosesPerDay: 'setMedDosesPerDay', medNote: 'setMedNote', notes: 'setNotes' };
 $('#btnSettings').addEventListener('click', () => { for (const [k, id] of Object.entries(SET_FIELDS)) $('#' + id).value = settings[k] == null ? '' : settings[k]; $('#settingsDlg').showModal(); });
 $('#settingsDlg').addEventListener('close', () => { if ($('#settingsDlg').returnValue !== 'ok') return; for (const [k, id] of Object.entries(SET_FIELDS)) { const el = $('#' + id); settings[k] = el.type === 'number' ? (el.value === '' ? null : +el.value) : (el.value.trim() || null); } localStorage.setItem(LS.settings, JSON.stringify(settings)); applySettings(); init(); });
 $('#btnTheme').addEventListener('click', () => { const cur = document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); const next = cur === 'dark' ? 'light' : 'dark'; document.documentElement.dataset.theme = next; localStorage.setItem(LS.theme, next); });
