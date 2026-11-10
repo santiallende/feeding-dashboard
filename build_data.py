@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Bundle the Huckleberry CSV export (plus events.json and profile.json, if present) for the dashboard.
+"""Bundle the Huckleberry CSV export (plus events.json, observations.json and profile.json, if present) for the dashboard.
 
 Writes
   data.js       plain bundle for local use (git-ignored)
@@ -17,6 +17,7 @@ folder = os.path.dirname(os.path.abspath(__file__))
 ap = argparse.ArgumentParser()
 ap.add_argument("csv", nargs="?")
 ap.add_argument("--events", default=os.path.join(folder, "events.json"))
+ap.add_argument("--observations", default=os.path.join(folder, "observations.json"), help="daily behavior/stool observations exported from the dashboard (kept out of git)")
 ap.add_argument("--profile", default=os.path.join(folder, "profile.json"), help="name, birth date, formula density, targets, clinic weigh-ins (kept out of git)")
 ap.add_argument("--passphrase-file", default=os.path.join(folder, ".passphrase"))
 ap.add_argument("--no-plain", action="store_true", help="do not write the unencrypted data.js")
@@ -46,7 +47,12 @@ if os.path.exists(args.profile):
     with open(args.profile, encoding="utf-8") as f:
         profile = json.load(f)
 
-bundle = {"rows": rows, "events": events, "profile": profile, "source": os.path.basename(src)}
+observations = None
+if os.path.exists(args.observations):
+    with open(args.observations, encoding="utf-8") as f:
+        observations = json.load(f)
+
+bundle = {"rows": rows, "events": events, "profile": profile, "observations": observations, "source": os.path.basename(src)}
 payload = json.dumps(bundle, ensure_ascii=False, separators=(",", ":"))
 
 if not args.no_plain:
@@ -55,6 +61,8 @@ if not args.no_plain:
         f.write("window.HUCKLEBERRY_ROWS = " + json.dumps(rows, ensure_ascii=False, separators=(",", ":")) + ";\n")
         if events is not None:
             f.write("window.HUCKLEBERRY_EVENTS = " + json.dumps(events, ensure_ascii=False, separators=(",", ":")) + ";\n")
+        if observations is not None:
+            f.write("window.HUCKLEBERRY_OBS = " + json.dumps(observations, ensure_ascii=False, separators=(",", ":")) + ";\n")
         if profile is not None:
             f.write("window.HUCKLEBERRY_PROFILE = " + json.dumps(profile, ensure_ascii=False) + ";\n")
     print(f"Wrote data.js: {len(rows)} rows from {os.path.basename(src)}" + (f", {len(events)} events" if events is not None else ", no events.json"))

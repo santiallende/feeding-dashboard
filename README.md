@@ -8,7 +8,7 @@ A single-page dashboard for exploring Huckleberry feeding exports, built for sha
 ## Publish the latest data (one command)
 
 1. Export the CSV from Huckleberry. It lands in `~/Downloads` or wherever you save it; putting it in this folder also works.
-2. If you added or edited events in the dashboard, click **Export JSON** there (it saves `events.json` to Downloads).
+2. If you added or edited events or daily observations in the dashboard, click **Export JSON** in those cards (they save `events.json` / `observations.json` to Downloads).
 3. Run:
 
    ```
@@ -19,7 +19,7 @@ The script brings in the newest Huckleberry CSV (from this folder or Downloads),
 
 ### What leaves your Mac
 
-Only `index.html`, the D3 and WHO reference files, and `data.enc.js` are in the repository. `data.enc.js` is the CSV and events encrypted with AES-256-GCM (key derived from the passphrase with PBKDF2, 300k iterations). The raw CSV, `events.json`, `profile.json`, the plain `data.js` and `.passphrase` are git-ignored and never uploaded.
+Only `index.html`, the D3 and WHO reference files, and `data.enc.js` are in the repository. `data.enc.js` is the CSV and events encrypted with AES-256-GCM (key derived from the passphrase with PBKDF2, 300k iterations). The raw CSV, `events.json`, `observations.json`, `profile.json`, the plain `data.js` and `.passphrase` are git-ignored and never uploaded.
 
 ### Passphrase
 
@@ -43,6 +43,7 @@ Events you add are saved in your browser. **Export JSON** then `./publish.sh` is
 - **When she eats:** hour-of-day heatmap by week.
 - **Bottle size vs. time to next feed:** whether a bigger bottle buys a longer stretch.
 - **Hunger drive:** lead-lag analysis. Each day is compared with its neighbours' average; the correlation between today's and tomorrow's deviation is tested against a shuffled-days baseline, because detrending alone creates a spurious negative correlation.
+- **Daily observations:** a one-minute daily form for what Huckleberry can't capture: distress/refusal at feeds, behavior and airway red flags (arching, turning away, anticipatory gagging, cough or choking, gurgly breathing, color change, prolonged or drowsy feeds), ounces refused, spit-up count and character, Bristol stool type with blood/mucus, crying hours, eczema, hives, respiratory symptoms, illness. Charts and 14-day counts follow, plus a CoMiSS-style symptom score (awareness tool, not diagnostic). Entries are saved in the browser; **Export JSON** writes `observations.json`, which `./publish.sh` picks up from Downloads and bundles.
 - **Events:** before/during/after comparison for each event (14-day windows by default), with calories per day, a Welch t-test and a 95% confidence interval on the change.
 - **Hunger drive:** labelled exploratory; it is not a validated clinical measure.
 
@@ -66,4 +67,4 @@ The hunger-drive and events cards each have a collapsible "How to read this sect
 - `vendor/who_girls.js` – WHO girls standards: weight-for-age, length-for-age, head-circumference-for-age (days 0–731), weight-for-length (45–110 cm) and 1-/2-month weight-velocity LMS tables
 - `build_data.py` – CSV + events → `data.js` and `data.enc.js`
 - `publish.sh` – the one-command update described above
-- `events.json`, `profile.json`, `*.csv`, `.passphrase` – local only, never committed
+- `events.json`, `observations.json`, `profile.json`, `*.csv`, `.passphrase` – local only, never committed

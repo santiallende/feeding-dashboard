@@ -31,6 +31,14 @@ if [ -n "$latest_events" ]; then
   fi
 fi
 
+# --- 2b. newer observations.json from Downloads ----------------------------
+latest_obs=$(ls -t ~/Downloads/observations*.json 2>/dev/null | head -1 || true)
+if [ -n "$latest_obs" ]; then
+  if [ ! -f ./observations.json ] || [ "$latest_obs" -nt ./observations.json ]; then
+    if head -c 1 "$latest_obs" | grep -q '\['; then echo "Using newer observations from $(basename "$latest_obs")"; cp "$latest_obs" ./observations.json; fi
+  fi
+fi
+
 # --- 3. passphrase + build -------------------------------------------------
 if [ ! -s .passphrase ]; then
   echo "No .passphrase file yet. Type the passphrase providers will use (it is saved in .passphrase, which is never committed):"

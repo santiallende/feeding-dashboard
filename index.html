@@ -196,6 +196,24 @@ ul.plain li { margin-bottom: 3px; }
 .chart-h { font-size: 13px; font-weight: 600; margin: 0 0 4px; }
 .zrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-top: 12px; }
 @media print { body.print-summary .card:not(#cardSummary), body.print-summary .kpis, body.print-summary .flags, body.print-summary .grid { display: none !important; } body.print-summary #cardSummary { display: block !important; } }
+.obs-form fieldset { border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px 12px; margin: 0; min-width: 0; }
+.obs-form legend { font-size: 12px; font-weight: 600; color: var(--ink-2); padding: 0 6px; text-transform: uppercase; letter-spacing: .06em; }
+.obs-top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.obs-top label { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-2); }
+.obs-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 10px; }
+@media (max-width: 1100px) { .obs-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 700px) { .obs-grid { grid-template-columns: 1fr; } }
+.obs-form label { display: flex; flex-direction: column; gap: 3px; font-size: 12.5px; color: var(--ink-2); margin: 6px 0; }
+.obs-form label.inline { flex-direction: row; align-items: center; justify-content: space-between; gap: 8px; }
+.obs-form label.inline input { width: 90px; }
+.obs-form select, .obs-form input[type=number], .obs-form input[type=text] { width: 100%; }
+.obs-field { margin: 4px 0 8px; } .obs-field .lbl { display: block; font-size: 12.5px; color: var(--ink-2); margin-bottom: 4px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+.chip { display: inline-flex !important; flex-direction: row !important; align-items: center; gap: 6px; margin: 0 !important; padding: 4px 10px; border: 1px solid var(--border); border-radius: 999px; font-size: 12.5px; color: var(--ink) !important; background: var(--control-bg); cursor: pointer; user-select: none; }
+.chip input { accent-color: var(--s1); margin: 0; }
+.chip:has(input:checked) { background: var(--selected); border-color: var(--s1); }
+.chip.warn:has(input:checked) { background: color-mix(in srgb, var(--div-neg) 14%, var(--surface)); border-color: var(--div-neg); }
+.obs-actions { display: flex; gap: 8px; margin: 6px 0 14px; }
 .gate { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; background: var(--glow), var(--page); padding: 20px; }
 .gate-card { width: min(440px, 100%); background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 28px 30px; box-shadow: var(--shadow); }
 .gate-card h2 { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; margin: 8px 0 6px; }
@@ -344,6 +362,66 @@ body.locked .wrap { visibility: hidden; }
       <p class="desc">Each panel is one measure per period on its own axis. Event bands repeat on every panel so you can line them up with the intake chart.</p>
       <div class="small-multiples" id="smCharts"></div>
       <div class="tablewrap hidden" id="smTable"></div>
+    </div>
+
+    <div class="card" id="cardObs">
+      <h2>Daily observations: feeding behavior, spit-up, stools, symptoms <span class="tools"><button id="btnResetObs" class="hidden" title="Discard entries saved in this browser and show the published ones">Use published</button><button id="btnExportObs">Export JSON</button><button id="btnImportObs">Import JSON</button><input type="file" id="fileObs" accept=".json" class="hidden"><button data-table="obs">Table</button></span></h2>
+      <p class="desc">One entry per day, about a minute to fill in. These are the things the Huckleberry log cannot capture and the ones that help separate a feeding disorder from reflux, cow's milk protein allergy or a swallowing problem. Pick a date that already has an entry to edit it. Entries are saved in this browser; <b>Export JSON</b> then <code>./publish.sh</code> puts them on the shared page.</p>
+      <form id="obsForm" class="obs-form">
+        <div class="obs-top"><label>Date <input type="date" id="obDay" required></label><span id="obStatus" class="note"></span></div>
+        <div class="obs-grid">
+          <fieldset><legend>Feeding behavior</legend>
+            <div class="obs-field"><span class="lbl">Distress or refusal at feeds</span>
+              <div class="seg" id="obDistress"><button type="button" data-v="0" aria-pressed="true">none</button><button type="button" data-v="1" aria-pressed="false">mild</button><button type="button" data-v="2" aria-pressed="false">moderate</button><button type="button" data-v="3" aria-pressed="false">severe</button></div></div>
+            <div class="chips" id="obFlags">
+              <label class="chip"><input type="checkbox" data-flag="arching">Arching</label>
+              <label class="chip"><input type="checkbox" data-flag="crying">Crying at the bottle</label>
+              <label class="chip"><input type="checkbox" data-flag="turnAway">Turning away</label>
+              <label class="chip"><input type="checkbox" data-flag="gagging">Gagging before the nipple touches her mouth</label>
+              <label class="chip warn"><input type="checkbox" data-flag="cough">Cough or choking during a feed</label>
+              <label class="chip warn"><input type="checkbox" data-flag="gurgly">Wet or gurgly breathing after feeds</label>
+              <label class="chip warn"><input type="checkbox" data-flag="color">Pale or blue color change during a feed</label>
+              <label class="chip"><input type="checkbox" data-flag="prolonged">Feeds longer than 30 minutes</label>
+              <label class="chip"><input type="checkbox" data-flag="drowsy">Drowsy or dream feeds used</label>
+            </div>
+            <label class="inline">Ounces offered but refused, approx. <input type="number" step="0.5" min="0" id="obRefused"></label>
+          </fieldset>
+          <fieldset><legend>Spit-up / vomit</legend>
+            <label class="inline">Episodes today <input type="number" step="1" min="0" id="obSpit"></label>
+            <label>Amount, CoMiSS category <select id="obRegurg">
+              <option value="0">0 · 0–2 episodes a day, small</option><option value="1">1 · 3–5 episodes, small volume</option><option value="2">2 · more than 5 episodes, more than a coffee spoon</option><option value="3">3 · more than 5 episodes of about half the feed, in fewer than half of feeds</option><option value="4">4 · continuous small regurgitation more than 30 min after each feed</option><option value="5">5 · half to a whole feed back up, in at least half of feeds</option><option value="6">6 · the whole feed back up after every feed</option></select></label>
+            <div class="chips" id="obSpitChar">
+              <label class="chip"><input type="checkbox" data-flag="curdled">Curdled</label>
+              <label class="chip"><input type="checkbox" data-flag="projectile">Projectile</label>
+              <label class="chip warn"><input type="checkbox" data-flag="bilious">Green / bilious</label>
+              <label class="chip warn"><input type="checkbox" data-flag="bloody">Blood-streaked</label>
+            </div>
+          </fieldset>
+          <fieldset><legend>Stools</legend>
+            <label>Consistency, Bristol type <select id="obStool"><option value="">not noted</option><option value="1">1 · hard lumps</option><option value="2">2 · lumpy sausage</option><option value="3">3 · sausage with cracks</option><option value="4">4 · smooth and soft</option><option value="5">5 · soft blobs</option><option value="6">6 · mushy, ragged edges</option><option value="7">7 · watery</option></select></label>
+            <div class="chips" id="obStoolFlags">
+              <label class="chip warn"><input type="checkbox" data-flag="blood">Blood</label>
+              <label class="chip"><input type="checkbox" data-flag="mucus">Mucus</label>
+            </div>
+          </fieldset>
+          <fieldset><legend>Other symptoms</legend>
+            <label class="inline">Crying or fussing, hours today <input type="number" step="0.5" min="0" id="obCry"></label>
+            <label>Eczema on head, neck or trunk <select id="obEczHead"><option value="0">none</option><option value="1">mild</option><option value="2">moderate</option><option value="3">severe</option></select></label>
+            <label>Eczema on arms, hands, legs or feet <select id="obEczLimbs"><option value="0">none</option><option value="1">mild</option><option value="2">moderate</option><option value="3">severe</option></select></label>
+            <label>Respiratory symptoms (wheeze, noisy breathing) <select id="obResp"><option value="0">none</option><option value="1">slight</option><option value="2">mild</option><option value="3">severe</option></select></label>
+            <div class="chips" id="obOther">
+              <label class="chip"><input type="checkbox" data-flag="urticaria">Hives</label>
+              <label class="chip"><input type="checkbox" data-flag="sick">Sick today (cold, fever, teething)</label>
+            </div>
+          </fieldset>
+        </div>
+        <label>Note <input type="text" id="obNote" placeholder="anything else worth remembering about today"></label>
+        <div class="obs-actions"><button type="submit" class="primary" id="obSave">Save day</button><button type="button" id="obDelete" class="danger hidden">Delete this day</button><button type="button" id="obClear" class="ghost">Clear form</button></div>
+      </form>
+      <div class="stat-row" id="obsStats"></div>
+      <div class="small-multiples" id="obsCharts"></div>
+      <div class="tablewrap hidden" id="obsTable"></div>
+      <p class="note">The CoMiSS-style score adds up crying, regurgitation, stool, skin and respiratory items the way the Cow's Milk-related Symptom Score does (0–33). It is an awareness tool whose development was industry-funded, not a diagnostic test; its authors suggest that 10 or more is the level at which to discuss cow's milk protein allergy with a clinician. Airway items (cough or choking, gurgly breathing, color change) are the signs that would justify a swallow study if they recur.</p>
     </div>
 
     <div class="card span6" id="cardHeat">
@@ -1382,6 +1460,7 @@ function computeFlags(days, G) {
   if (lo) { let streak = 0; for (let i = ok.length - 1; i >= 0; i--) { const v = MEASURES.kcal.val(ok[i]); if (v != null && v < lo) streak++; else break; } if (streak >= 3) flags.push({ level: 'warn', text: 'Formula calories below the ' + lo + ' kcal/kg/day floor for ' + streak + ' straight full days (through ' + fmtDay(ok[ok.length - 1].day) + ').' }); }
   const w = allWeighIns(); if (w.length) { const stale = diffDays(w[w.length - 1].day, DATA.last); if (stale > 14) flags.push({ level: 'info', text: 'Last weigh-in is ' + stale + ' days old (' + fmtDay(w[w.length - 1].day) + '); per-kg figures assume no gain since then. A weekly home weight on the same scale would tighten them.' }); }
   if (G) { const v = G.vel[G.vel.length - 1]; if (v && v.z <= -2) flags.push({ level: 'warn', text: 'Weight gain over ' + v.label.replace(/\s/g, '') + ' was below the WHO −2 z velocity line (z ' + zText(v.z) + ').' }); const wfl = G.wfl[G.wfl.length - 1]; if (wfl && wfl.z < -1.65) flags.push({ level: 'warn', text: 'Weight-for-length z ' + zText(wfl.z) + ' on ' + fmtDay(wfl.day) + ' is below the −1.65 threshold used for faltering weight.' }); const wfa = G.wfa[G.wfa.length - 1]; if (wfa && wfa.z <= -2) flags.push({ level: 'warn', text: 'Weight-for-age z ' + zText(wfa.z) + ' is at or below −2.' }); }
+  const ost = obsStats(14); if (ost) { if (ost.airwayDays >= 2) flags.push({ level: 'warn', text: ost.airwayDays + ' days with cough/choking, gurgly breathing or color change at feeds in the last ' + ost.n + ' logged days; recurring airway signs are the usual trigger for a swallow study.' }); if (ost.biliousOrBloodyVomit || ost.bloodStoolDays) flags.push({ level: 'warn', text: 'Green or bloody vomit, or blood in stool, was logged on ' + (ost.biliousOrBloodyVomit + ost.bloodStoolDays) + ' day(s) in the last ' + ost.n + ' logged days; tell the care team.' }); if (ost.comissAvg != null && ost.comissAvg >= 10) flags.push({ level: 'info', text: 'CoMiSS-style symptom score averaged ' + fmt1(ost.comissAvg) + ' over the last ' + ost.n + ' logged days (10+ is the discuss-with-clinician level).' }); }
   return flags;
 }
 function renderFlags(flags) { const el = $('#flags'); el.textContent = ''; if (!flags.length) { el.classList.add('quiet'); el.textContent = 'No active flags: calories at or above the floor for the last 3 full days, weight current, growth measures above the usual thresholds.'; return; } el.classList.remove('quiet'); for (const f of flags) { const d = document.createElement('div'); d.className = 'flag ' + f.level; d.textContent = (f.level === 'warn' ? '⚠ ' : 'ⓘ ') + f.text; el.appendChild(d); } }
@@ -1401,6 +1480,7 @@ function renderSummary(days, G, flags) {
   item('Formula', kcalPerOz(DATA.last) + ' kcal/oz', settings.fortStart ? 'fortified since ' + fmtDay(settings.fortStart) : 'standard mix');
   const protein = proteinPerKg(last7); if (protein != null) item('Protein', fmt1(protein) + ' g/kg/day', 'from formula label' + (settings.proteinLow ? ' · target ' + settings.proteinLow + '–' + settings.proteinHigh : ''));
   const med = medPerKg(); if (med) item(med.name, med.text, med.sub);
+  const ost = obsStats(14); if (ost) { item('Feeding behavior, last ' + ost.n + ' logged days', ost.airwayDays + ' airway-flag day' + (ost.airwayDays === 1 ? '' : 's'), ost.gaggingDays + ' with anticipatory gagging · distress ' + (ost.distressAvg != null ? fmt1(ost.distressAvg) + '/3' : '–') + ' · ' + (ost.spitAvg != null ? fmt1(ost.spitAvg) + ' spit-ups/day' : '')); item('Stools and symptoms', 'CoMiSS-style ' + (ost.comissAvg != null ? fmt1(ost.comissAvg) : '–'), ost.bloodStoolDays + ' day(s) blood, ' + ost.mucusDays + ' mucus, ' + ost.looseDays + ' loose · highest score ' + (ost.comissMax != null ? ost.comissMax : '–')); }
   const ev = events.slice().sort((a, b) => a.start < b.start ? -1 : 1); const evEl = $('#summaryEvents'); evEl.textContent = ''; for (const e of ev) { const li = document.createElement('li'); li.textContent = fmtDay(e.start) + (e.end ? ' – ' + fmtDay(e.end) : '') + ': ' + e.name + (e.notes ? ' — ' + e.notes : ''); evEl.appendChild(li); }
   const fl = $('#summaryFlags'); fl.textContent = ''; for (const f of flags) { const li = document.createElement('li'); li.textContent = f.text; fl.appendChild(li); } if (!flags.length) { const li = document.createElement('li'); li.textContent = 'None active.'; fl.appendChild(li); }
   const notes = $('#summaryNotes'); notes.textContent = ''; const paras = String(settings.notes || '').split(/\n\s*\n/).map(s => s.trim()).filter(Boolean); $('#summaryNotesWrap').classList.toggle('hidden', !paras.length); for (const p of paras) { const d = document.createElement('p'); d.textContent = p; notes.appendChild(d); }
@@ -1408,11 +1488,111 @@ function renderSummary(days, G, flags) {
 function proteinPerKg(list) { const g100 = +settings.proteinPer100ml; if (!g100 || !list.length) return null; const v = list.filter(d => d.weightLbs).map(d => d.oz * ML_OZ / 100 * g100 * (kcalPerOz(d.day) / (+settings.kcalBase || 20)) / (d.weightLbs * LB_KG)); return v.length ? mean(v) : null; }
 function medPerKg() { if (!settings.medName || !settings.medDoseMg) return null; const w = allWeighIns(); if (!w.length) return null; const kg = w[w.length - 1].lbs * LB_KG; const perDay = +settings.medDoseMg * (+settings.medDosesPerDay || 1); return { name: settings.medName, text: fmt2(perDay / kg) + ' mg/kg/day', sub: settings.medDoseMg + ' mg × ' + (settings.medDosesPerDay || 1) + '/day at ' + kgText(kg) + (settings.medNote ? ' · ' + settings.medNote : '') }; }
 
+// ---------- daily observations ----------
+let BUNDLED_OBS = null, obs = [];
+const OBS_KEY = 'feeding-dash-observations-v1';
+const FLAG_LABELS = { arching: 'arching', crying: 'crying at the bottle', turnAway: 'turning away', gagging: 'anticipatory gagging', cough: 'cough/choking', gurgly: 'gurgly breathing', color: 'color change', prolonged: 'feeds > 30 min', drowsy: 'drowsy feeds', curdled: 'curdled', projectile: 'projectile', bilious: 'bilious', bloody: 'bloody vomit', blood: 'blood in stool', mucus: 'mucus in stool', urticaria: 'hives', sick: 'sick' };
+const AIRWAY = ['cough', 'gurgly', 'color'];
+function loadObs() { const stored = localStorage.getItem(OBS_KEY); if (stored) { try { obs = JSON.parse(stored); return; } catch (e) { obs = []; } } obs = Array.isArray(BUNDLED_OBS) ? BUNDLED_OBS.map(o => Object.assign({}, o)) : []; }
+const saveObs = () => localStorage.setItem(OBS_KEY, JSON.stringify(obs));
+const obsByDay = () => new Map(obs.map(o => [o.day, o]));
+function cryScore(h) { if (h == null || h === '') return 0; h = +h; return h < 1 ? 0 : h < 1.5 ? 1 : h < 2 ? 2 : h < 3 ? 3 : h < 4 ? 4 : h < 5 ? 5 : 6; }
+function stoolScore(t) { t = +t; if (!t) return 0; return t <= 2 ? 4 : t <= 4 ? 0 : t <= 6 ? 4 : 6; }
+function comiss(o) { const skin = (+o.eczHead || 0) + (+o.eczLimbs || 0) + (o.flags && o.flags.urticaria ? 6 : 0); return cryScore(o.cryHours) + (+o.regurg || 0) + stoolScore(o.stoolType) + skin + (+o.resp || 0); }
+const airwayCount = o => AIRWAY.filter(k => o.flags && o.flags[k]).length;
+function obsStats(windowDays = 14) {
+  const sorted = obs.slice().sort((a, b) => a.day < b.day ? -1 : 1); if (!sorted.length) return null;
+  const end = sorted[sorted.length - 1].day; const start = addDays(end, -(windowDays - 1)); const recent = sorted.filter(o => o.day >= start);
+  const n = recent.length; const cnt = f => recent.filter(f).length; const avg = f => { const v = recent.map(f).filter(x => x != null && x !== '' && isFinite(+x)).map(Number); return v.length ? mean(v) : null; };
+  return { n, start, end, airwayDays: cnt(o => airwayCount(o) > 0), gaggingDays: cnt(o => o.flags && o.flags.gagging), distressAvg: avg(o => o.distress), distressHigh: cnt(o => +o.distress >= 2), spitAvg: avg(o => o.spitups), bloodStoolDays: cnt(o => o.stoolFlags && o.stoolFlags.blood), mucusDays: cnt(o => o.stoolFlags && o.stoolFlags.mucus), biliousOrBloodyVomit: cnt(o => o.spitChar && (o.spitChar.bilious || o.spitChar.bloody)), comissAvg: avg(o => comiss(o)), comissMax: d3.max(recent, o => comiss(o)), looseDays: cnt(o => +o.stoolType >= 6), sickDays: cnt(o => o.flags && o.flags.sick), prolongedDays: cnt(o => o.flags && o.flags.prolonged), refusedAvg: avg(o => o.refusedOz) };
+}
+function obsFormRead() {
+  const flags = {}; $$('#obFlags input, #obOther input').forEach(i => { if (i.checked) flags[i.dataset.flag] = true; });
+  const spitChar = {}; $$('#obSpitChar input').forEach(i => { if (i.checked) spitChar[i.dataset.flag] = true; });
+  const stoolFlags = {}; $$('#obStoolFlags input').forEach(i => { if (i.checked) stoolFlags[i.dataset.flag] = true; });
+  const num = id => { const v = $('#' + id).value; return v === '' ? null : +v; };
+  const distressBtn = $('#obDistress button[aria-pressed="true"]');
+  return { day: $('#obDay').value, distress: distressBtn ? +distressBtn.dataset.v : 0, flags, refusedOz: num('obRefused'), spitups: num('obSpit'), regurg: +$('#obRegurg').value, spitChar, stoolType: $('#obStool').value === '' ? null : +$('#obStool').value, stoolFlags, cryHours: num('obCry'), eczHead: +$('#obEczHead').value, eczLimbs: +$('#obEczLimbs').value, resp: +$('#obResp').value, note: $('#obNote').value.trim() };
+}
+function obsFormWrite(o) {
+  const f = o || { day: $('#obDay').value, distress: 0, flags: {}, spitChar: {}, stoolFlags: {}, regurg: 0, eczHead: 0, eczLimbs: 0, resp: 0 };
+  $$('#obDistress button').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.v === (+f.distress || 0))));
+  $$('#obFlags input, #obOther input').forEach(i => { i.checked = !!(f.flags && f.flags[i.dataset.flag]); });
+  $$('#obSpitChar input').forEach(i => { i.checked = !!(f.spitChar && f.spitChar[i.dataset.flag]); });
+  $$('#obStoolFlags input').forEach(i => { i.checked = !!(f.stoolFlags && f.stoolFlags[i.dataset.flag]); });
+  $('#obRefused').value = f.refusedOz == null ? '' : f.refusedOz; $('#obSpit').value = f.spitups == null ? '' : f.spitups; $('#obRegurg').value = f.regurg || 0; $('#obStool').value = f.stoolType == null ? '' : f.stoolType;
+  $('#obCry').value = f.cryHours == null ? '' : f.cryHours; $('#obEczHead').value = f.eczHead || 0; $('#obEczLimbs').value = f.eczLimbs || 0; $('#obResp').value = f.resp || 0; $('#obNote').value = f.note || '';
+  $('#obDelete').classList.toggle('hidden', !o); $('#obSave').textContent = o ? 'Save changes' : 'Save day'; $('#obStatus').textContent = o ? 'Editing the entry for ' + fmtDayY(o.day) + '.' : (obs.length ? 'No entry for this date yet.' : '');
+}
+function renderObs() {
+  $('#btnResetObs').classList.toggle('hidden', !(Array.isArray(BUNDLED_OBS) && localStorage.getItem(OBS_KEY)));
+  if (!$('#obDay').value) { $('#obDay').value = dayKey(new Date()); obsFormWrite(obsByDay().get($('#obDay').value) || null); }
+  const sorted = obs.slice().sort((a, b) => a.day < b.day ? -1 : 1);
+  // stats
+  const st = obsStats(14); const tiles = $('#obsStats'); tiles.textContent = '';
+  const tile = (label, value, sub) => { const t = document.createElement('div'); t.className = 'tile'; const l = document.createElement('div'); l.className = 'label'; l.textContent = label; const v = document.createElement('div'); v.className = 'value'; v.textContent = value; const s = document.createElement('div'); s.className = 'delta'; s.textContent = sub || ''; t.append(l, v, s); tiles.appendChild(t); };
+  if (st) {
+    const w = 'of ' + st.n + ' days logged, ' + fmtDay(st.start) + ' – ' + fmtDay(st.end);
+    tile('Airway red-flag days', String(st.airwayDays), w + ' (cough/choking, gurgly breathing, color change)');
+    tile('Anticipatory gagging days', String(st.gaggingDays), w);
+    tile('Distress at feeds', st.distressAvg != null ? fmt1(st.distressAvg) + ' / 3' : '–', st.distressHigh + ' day' + (st.distressHigh === 1 ? '' : 's') + ' moderate or severe');
+    tile('Spit-ups per day', st.spitAvg != null ? fmt1(st.spitAvg) : '–', st.biliousOrBloodyVomit ? st.biliousOrBloodyVomit + ' day(s) with green or bloody vomit' : 'no green or bloody vomit');
+    tile('Stool warning days', String(st.bloodStoolDays + st.mucusDays), st.bloodStoolDays + ' blood, ' + st.mucusDays + ' mucus, ' + st.looseDays + ' loose (type 6–7)');
+    tile('CoMiSS-style score', st.comissAvg != null ? fmt1(st.comissAvg) : '–', 'average; highest day ' + (st.comissMax != null ? st.comissMax : '–') + ' (10+ is the discuss-with-clinician level)');
+  } else { const p = document.createElement('div'); p.className = 'note'; p.textContent = 'No observations yet. Fill in today above; charts and weekly counts appear after the first entry.'; tiles.appendChild(p); }
+  // charts
+  const host = $('#obsCharts'); host.textContent = '';
+  if (sorted.length) {
+    const [ra, rb] = currentRange(); const inRange = sorted.filter(o => o.day >= ra && o.day <= rb); const series = inRange.length ? inRange : sorted;
+    const x0 = fromKey(series[0].day), x1 = d3.timeDay.offset(fromKey(series[series.length - 1].day), 1);
+    const specs = [
+      { title: 'Distress at feeds (0–3)', val: o => +o.distress || 0, ymax: 3, fmt: v => ['none', 'mild', 'moderate', 'severe'][v] || v },
+      { title: 'Airway red flags per day', val: o => airwayCount(o), ymax: 3, fmt: v => v + ' of 3', bars: true, warn: v => v > 0 },
+      { title: 'Spit-ups per day', val: o => o.spitups == null ? null : +o.spitups, fmt: v => v, bars: true, mark: o => o.spitChar && (o.spitChar.bilious || o.spitChar.bloody) },
+      { title: 'Stool type (Bristol 1–7)', val: o => o.stoolType == null ? null : +o.stoolType, ymin: 1, ymax: 7, fmt: v => 'type ' + v, mark: o => o.stoolFlags && (o.stoolFlags.blood || o.stoolFlags.mucus) },
+      { title: 'Crying or fussing, hours', val: o => o.cryHours == null ? null : +o.cryHours, fmt: v => fmt1(v) + ' h' },
+      { title: 'CoMiSS-style score (0–33)', val: o => comiss(o), ymax: 33, fmt: v => v, threshold: 10 },
+    ];
+    for (const s of specs) {
+      const card = document.createElement('div'); card.className = 'sm'; const h3 = document.createElement('h3'); h3.textContent = s.title; card.appendChild(h3); const ch = document.createElement('div'); ch.className = 'chart'; card.appendChild(ch); host.appendChild(card); s.el = ch;
+    }
+    for (const s of specs) {
+      const ch = s.el; const W = Math.max(230, ch.clientWidth || 280), H = 130, m = { t: 8, r: 10, b: 20, l: 34 }, w = W - m.l - m.r, h = H - m.t - m.b;
+      const svg = svgIn(ch, W, H); const g = svg.append('g').attr('transform', 'translate(' + m.l + ',' + m.t + ')');
+      const pts = series.map(o => ({ o, v: s.val(o) })).filter(p => p.v != null && isFinite(p.v));
+      const x = d3.scaleTime().domain([d3.timeDay.offset(x0, -1), x1]).range([0, w]); const y = d3.scaleLinear().domain([s.ymin || 0, Math.max(s.ymax || 1, d3.max(pts, p => p.v) || 1)]).nice().range([h, 0]);
+      yAxisLeft(g, y, w, 3, v => Number.isInteger(v) ? v : ''); g.append('g').attr('class', 'axis').attr('transform', 'translate(0,' + h + ')').call(d3.axisBottom(x).ticks(4).tickSize(0).tickPadding(6).tickFormat(d3.timeFormat('%b %-d'))).call(sel => sel.select('.domain').remove());
+      if (s.threshold != null) g.append('line').attr('x1', 0).attr('x2', w).attr('y1', y(s.threshold)).attr('y2', y(s.threshold)).style('stroke', 'var(--div-neg)').style('opacity', 0.7);
+      const cx = p => x(d3.timeHour.offset(fromKey(p.o.day), 12));
+      if (s.bars) { const bw = Math.max(3, Math.min(14, w / Math.max(1, diffDays(series[0].day, series[series.length - 1].day) + 1) - 2)); g.append('g').selectAll('path').data(pts).join('path').attr('d', p => roundedBar(cx(p) - bw / 2, y(p.v), bw, h - y(p.v), 3)).style('fill', p => s.warn && s.warn(p.v) ? 'var(--div-neg)' : 'var(--s1)'); }
+      else { g.append('path').attr('d', d3.line().x(cx).y(p => y(p.v)).curve(d3.curveMonotoneX)(pts)).attr('fill', 'none').style('stroke', 'var(--s1)').attr('stroke-width', 2); g.append('g').selectAll('circle').data(pts).join('circle').attr('cx', cx).attr('cy', p => y(p.v)).attr('r', 4).style('fill', 'var(--s1)').style('stroke', 'var(--surface)').attr('stroke-width', 2); }
+      if (s.mark) g.append('g').selectAll('circle').data(pts.filter(p => s.mark(p.o))).join('circle').attr('cx', cx).attr('cy', p => y(p.v)).attr('r', 7).style('fill', 'none').style('stroke', 'var(--div-neg)').attr('stroke-width', 2);
+      if (pts.length) { const del = d3.Delaunay.from(pts, cx, p => y(p.v)); svg.append('rect').attr('x', m.l).attr('y', m.t).attr('width', w).attr('height', h).attr('fill', 'transparent').on('pointermove', ev => { const [px, py] = d3.pointer(ev, g.node()); const p = pts[del.find(px, py)]; if (!p) return; showTip(ev, fmtDayY(p.o.day), [[s.title, String(s.fmt(p.v)), 'var(--s1)'], ...obsTipRows(p.o)]); }).on('pointerleave', hideTip); }
+    }
+  }
+  makeTable('#obsTable', [{ label: 'Date', get: o => fmtDayY(o.day) }, { label: 'Distress', get: o => ['none', 'mild', 'moderate', 'severe'][+o.distress || 0] }, { label: 'Behavior flags', get: o => Object.keys(o.flags || {}).filter(k => !['urticaria', 'sick'].includes(k)).map(k => FLAG_LABELS[k]).join(', ') }, { label: 'Refused oz', get: o => o.refusedOz }, { label: 'Spit-ups', get: o => o.spitups }, { label: 'Regurg. cat.', get: o => o.regurg }, { label: 'Vomit character', get: o => Object.keys(o.spitChar || {}).map(k => FLAG_LABELS[k]).join(', ') }, { label: 'Stool type', get: o => o.stoolType }, { label: 'Stool flags', get: o => Object.keys(o.stoolFlags || {}).map(k => FLAG_LABELS[k]).join(', ') }, { label: 'Crying h', get: o => o.cryHours }, { label: 'Eczema H/L', get: o => (o.eczHead || 0) + '/' + (o.eczLimbs || 0) }, { label: 'Resp.', get: o => o.resp }, { label: 'Other', get: o => Object.keys(o.flags || {}).filter(k => ['urticaria', 'sick'].includes(k)).map(k => FLAG_LABELS[k]).join(', ') }, { label: 'CoMiSS', get: o => comiss(o) }, { label: 'Note', get: o => o.note }], sorted.slice().reverse());
+}
+function obsTipRows(o) {
+  const rows = []; const fl = Object.keys(o.flags || {}).map(k => FLAG_LABELS[k]); if (fl.length) rows.push(['Flags', fl.join(', ')]);
+  if (o.spitups != null) rows.push(['Spit-ups', String(o.spitups) + (Object.keys(o.spitChar || {}).length ? ' (' + Object.keys(o.spitChar).map(k => FLAG_LABELS[k]).join(', ') + ')' : '')]);
+  if (o.stoolType != null) rows.push(['Stool', 'type ' + o.stoolType + (Object.keys(o.stoolFlags || {}).length ? ', ' + Object.keys(o.stoolFlags).map(k => FLAG_LABELS[k]).join(', ') : '')]);
+  rows.push(['CoMiSS-style score', String(comiss(o))]); if (o.note) rows.push([o.note]); return rows;
+}
+$('#obDay').addEventListener('change', () => obsFormWrite(obsByDay().get($('#obDay').value) || null));
+$('#obDistress').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; $$('#obDistress button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); });
+$('#obsForm').addEventListener('submit', e => { e.preventDefault(); const o = obsFormRead(); if (!o.day) return; obs = obs.filter(x => x.day !== o.day); obs.push(o); saveObs(); obsFormWrite(o); renderObs(); const st = obsStats(14); if (st) renderAll(); });
+$('#obDelete').addEventListener('click', () => { const d = $('#obDay').value; obs = obs.filter(x => x.day !== d); saveObs(); obsFormWrite(null); renderAll(); });
+$('#obClear').addEventListener('click', () => obsFormWrite(null));
+$('#btnResetObs').addEventListener('click', () => { localStorage.removeItem(OBS_KEY); loadObs(); obsFormWrite(obsByDay().get($('#obDay').value) || null); renderAll(); });
+$('#btnExportObs').addEventListener('click', () => { const blob = new Blob([JSON.stringify(obs.slice().sort((a, b) => a.day < b.day ? -1 : 1), null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'observations.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); });
+$('#btnImportObs').addEventListener('click', () => $('#fileObs').click());
+$('#fileObs').addEventListener('change', async e => { const f = e.target.files[0]; if (!f) return; try { const arr = JSON.parse(await f.text()); if (!Array.isArray(arr)) throw new Error('not a list'); const byDay = obsByDay(); for (const o of arr) if (o && /^\d{4}-\d{2}-\d{2}$/.test(o.day)) byDay.set(o.day, o); obs = Array.from(byDay.values()); saveObs(); renderAll(); } catch (err) { $('#obStatus').textContent = 'Could not read that file: ' + err.message; } e.target.value = ''; });
+
 // ---------- orchestration ----------
 function renderAll() {
   const days = filteredDays(); renderHeader(); $('#btnResetCsv').classList.toggle('hidden', !localStorage.getItem(LS.csv));
   if (!days.length) { $('#kpis').textContent = ''; $('#intakeChart').textContent = 'No days in range.'; return; }
-  renderHero(days); const G = renderGrowth(); const flags = computeFlags(days, G); renderFlags(flags); renderSummary(days, G, flags); renderKpis(days); const periods = renderIntake(days); renderSmallMultiples(days, periods); renderHeat(days); renderFeedSize(days); renderLag(days); renderEvents();
+  renderHero(days); const G = renderGrowth(); const flags = computeFlags(days, G); renderFlags(flags); renderSummary(days, G, flags); renderKpis(days); const periods = renderIntake(days); renderSmallMultiples(days, periods); renderObs(); renderHeat(days); renderFeedSize(days); renderLag(days); renderEvents();
 }
 // ---------- data source: plain bundle, encrypted bundle, or a CSV loaded in this browser ----------
 let BASE_RAW = null, BUNDLED_EVENTS = null;
@@ -1428,11 +1608,11 @@ function showGate(msg) { $('#gateTitle').textContent = 'Feeding dashboard'; $('#
 function hideGate() { $('#gate').classList.add('hidden'); document.body.classList.remove('locked'); }
 async function unlock(pass, remember) {
   const bundle = await decryptBundle(window.HUCKLEBERRY_ENC, pass);
-  BASE_RAW = bundle.rows; BUNDLED_EVENTS = bundle.events || null; BUNDLED_PROFILE = bundle.profile || null; applySettings(); if (remember) sessionStorage.setItem(PASS_KEY, pass);
+  BASE_RAW = bundle.rows; BUNDLED_EVENTS = bundle.events || null; BUNDLED_PROFILE = bundle.profile || null; BUNDLED_OBS = bundle.observations || null; applySettings(); if (remember) sessionStorage.setItem(PASS_KEY, pass);
   hideGate(); $('#btnLock').classList.remove('hidden'); init();
 }
 async function boot() {
-  if (window.HUCKLEBERRY_ROWS) { BASE_RAW = window.HUCKLEBERRY_ROWS; BUNDLED_EVENTS = window.HUCKLEBERRY_EVENTS || null; BUNDLED_PROFILE = window.HUCKLEBERRY_PROFILE || null; applySettings(); init(); return; }
+  if (window.HUCKLEBERRY_ROWS) { BASE_RAW = window.HUCKLEBERRY_ROWS; BUNDLED_EVENTS = window.HUCKLEBERRY_EVENTS || null; BUNDLED_PROFILE = window.HUCKLEBERRY_PROFILE || null; BUNDLED_OBS = window.HUCKLEBERRY_OBS || null; applySettings(); init(); return; }
   if (window.HUCKLEBERRY_ENC) {
     if (!crypto.subtle) { showGate('This browser cannot decrypt the page (it needs a secure https connection).'); return; }
     const saved = sessionStorage.getItem(PASS_KEY);
@@ -1448,7 +1628,7 @@ $('#gateForm').addEventListener('submit', async e => {
 });
 function init() {
   const storedCsv = localStorage.getItem(LS.csv); RAW = storedCsv ? d3.csvParse(storedCsv) : BASE_RAW;
-  DATA = parseRows(RAW); Object.assign(DATA, buildDays(DATA)); loadEvents(); seedKnownEvents();
+  DATA = parseRows(RAW); Object.assign(DATA, buildDays(DATA)); loadEvents(); seedKnownEvents(); loadObs();
   for (const id of ['fromDate', 'toDate', 'evStart', 'evEnd']) { $('#' + id).min = DATA.first; }
   $('#fromDate').value = DATA.analysisStart; $('#toDate').value = DATA.last; if (!state.from) { state.from = DATA.analysisStart; state.to = DATA.last; }
   renderAll();
@@ -1464,7 +1644,7 @@ $('#unitSeg').addEventListener('click', e => { const b = e.target.closest('butto
 $$('#unitSeg button').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.measure === state.measure)));
 document.addEventListener('click', e => {
   const b = e.target.closest('button[data-table]'); if (!b) return; const id = b.dataset.table;
-  const map = { hero: ['#heroChart', '#heroTable', '#heroLegend'], growth: ['#growthCharts', '#growthTable', '#growthLegend'], intake: ['#intakeChart', '#intakeTable', '#intakeLegend'], sm: ['#smCharts', '#smTable'], heat: ['#heatChart', '#heatTable'], feedsize: ['#feedSizeChart', '#feedSizeTable'], lag: [null, '#lagTable'] }[id];
+  const map = { hero: ['#heroChart', '#heroTable', '#heroLegend'], growth: ['#growthCharts', '#growthTable', '#growthLegend'], obs: ['#obsCharts', '#obsTable'], intake: ['#intakeChart', '#intakeTable', '#intakeLegend'], sm: ['#smCharts', '#smTable'], heat: ['#heatChart', '#heatTable'], feedsize: ['#feedSizeChart', '#feedSizeTable'], lag: [null, '#lagTable'] }[id];
   const nowShowingTable = $(map[1]).classList.toggle('hidden') === false;
   if (map[0]) $(map[0]).classList.toggle('hidden', nowShowingTable); if (map[2]) $(map[2]).classList.toggle('hidden', nowShowingTable);
   b.textContent = nowShowingTable ? (map[0] ? 'Chart' : 'Hide table') : 'Table';
