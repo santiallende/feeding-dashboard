@@ -182,7 +182,15 @@ dialog textarea { font: inherit; color: var(--ink); background: var(--control-bg
 dialog code { font-size: 12px; }
 .growth-two { grid-template-columns: 1.6fr 1fr; }
 @media (max-width: 980px) { .growth-two { grid-template-columns: 1fr; } }
-.flags { display: flex; flex-direction: column; gap: 8px; margin: 0 0 28px; }
+.flagcard { padding: 16px 22px 12px; }
+.flagcard summary { cursor: pointer; list-style: none; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.flagcard summary::-webkit-details-marker { display: none; }
+.flagcard summary::before { content: '▸'; color: var(--muted); font-size: 12px; transition: transform .15s; }
+.flagcard[open] summary::before { transform: rotate(90deg); }
+.flagcard #flagsTitle { font-weight: 650; font-size: 16px; }
+.flagcard .flags-hint { flex-basis: 100%; color: var(--ink-2); font-size: 13.5px; margin-top: 2px; line-height: 1.5; }
+.flagcard[open] .flags-hint { margin-bottom: 10px; }
+.flags { display: flex; flex-direction: column; gap: 8px; margin: 0; }
 .flags.quiet { color: var(--muted); font-size: 12.5px; padding: 0 4px; }
 .flag { padding: 11px 14px; border-radius: 12px; font-size: 14.5px; border: 1px solid var(--border); background: var(--surface); }
 .flag.warn { border-color: color-mix(in srgb, var(--s4) 50%, transparent); background: color-mix(in srgb, var(--s4) 12%, var(--surface)); }
@@ -216,7 +224,7 @@ ul.plain li { margin-bottom: 5px; } ul.plain b { color: var(--ink); font-weight:
 @media print { .card.summary { font-size: 12.5px; } .sstat .val { font-size: 20px; } .sum-section { padding: 10px 0 4px; } }
 .chart-h { font-size: 14.5px; font-weight: 600; margin: 0 0 6px; }
 .zrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 22px 24px; margin-top: 20px; }
-@media print { body.print-summary .card:not(#cardSummary), body.print-summary .kpis, body.print-summary .flags, body.print-summary .grid { display: none !important; } body.print-summary #cardSummary { display: block !important; } }
+@media print { body.print-summary .card:not(#cardSummary), body.print-summary .kpis, body.print-summary .flagcard, body.print-summary .grid { display: none !important; } body.print-summary #cardSummary { display: block !important; } }
 .obs-form fieldset { border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px 12px; margin: 0; min-width: 0; }
 .obs-form legend { font-size: 12px; font-weight: 600; color: var(--ink-2); padding: 0 6px; text-transform: uppercase; letter-spacing: .06em; }
 .obs-top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
@@ -307,7 +315,10 @@ body.locked .wrap { visibility: hidden; }
     <label class="check" title="Show event bands and markers on the charts"><input type="checkbox" id="showEvents" checked> Show events on charts</label>
   </div>
 
-  <div id="flags" class="flags"></div>
+  <details class="card flagcard" id="flagsCard">
+    <summary><span class="eyebrow">Active flags</span> <span id="flagsTitle">Automatic checks</span> <span class="flags-hint">Rules the dashboard re-checks on every load: calorie floor, weight age, growth thresholds, medication dose, diaper logging and daily-observation red flags. Amber ⚠ means a clinical threshold was crossed; grey ⓘ means a data gap. Each clears on its own when the condition does.</span></summary>
+    <div id="flags" class="flags"></div>
+  </details>
 
   <div class="card summary" id="cardSummary">
     <div class="sum-head">
@@ -1517,7 +1528,13 @@ function computeFlags(days, G) {
   const ost = obsStats(14); if (ost) { if (ost.airwayDays >= 2) flags.push({ level: 'warn', text: ost.airwayDays + ' days with cough/choking, gurgly breathing or color change at feeds in the last ' + ost.n + ' logged days; recurring airway signs are the usual trigger for a swallow study.' }); if (ost.biliousOrBloodyVomit || ost.bloodStoolDays) flags.push({ level: 'warn', text: 'Green or bloody vomit, or blood in stool, was logged on ' + (ost.biliousOrBloodyVomit + ost.bloodStoolDays) + ' day(s) in the last ' + ost.n + ' logged days; tell the care team.' }); if (ost.comissAvg != null && ost.comissAvg >= 10) flags.push({ level: 'info', text: 'CoMiSS-style symptom score averaged ' + fmt1(ost.comissAvg) + ' over the last ' + ost.n + ' logged days (10+ is the discuss-with-clinician level).' }); }
   return flags;
 }
-function renderFlags(flags) { const el = $('#flags'); el.textContent = ''; if (!flags.length) { el.classList.add('quiet'); el.textContent = 'No active flags: calories at or above the floor for the last 3 full days, weight current, growth measures above the usual thresholds.'; return; } el.classList.remove('quiet'); for (const f of flags) { const d = document.createElement('div'); d.className = 'flag ' + f.level; d.textContent = (f.level === 'warn' ? '⚠ ' : 'ⓘ ') + f.text; el.appendChild(d); } }
+function renderFlags(flags) {
+  const el = $('#flags'); el.textContent = ''; const warn = flags.filter(f => f.level === 'warn').length, info = flags.length - warn;
+  $('#flagsTitle').textContent = flags.length ? warn + ' warning' + (warn === 1 ? '' : 's') + (info ? ', ' + info + ' note' + (info === 1 ? '' : 's') : '') : 'none active';
+  const card = $('#flagsCard'); const saved = localStorage.getItem('feeding-dash-flags-open'); card.open = saved == null ? flags.some(f => f.level === 'warn') : saved === '1';
+  if (!flags.length) { const p = document.createElement('div'); p.className = 'flag info'; p.textContent = 'No active flags: calories at or above the floor for the last 3 full days, weight current, growth measures above the usual thresholds.'; el.appendChild(p); return; }
+  for (const f of flags) { const d = document.createElement('div'); d.className = 'flag ' + f.level; d.textContent = (f.level === 'warn' ? '⚠ ' : 'ⓘ ') + f.text; el.appendChild(d); }
+}
 function volumePlan(days) {
   const w = allWeighIns(); if (!w.length) return null; const kg = w[w.length - 1].lbs * LB_KG; const ok = days.filter(usable);
   const cur = kcalPerOz(DATA.last); const concs = Array.from(new Set([cur, 27, 30].filter(c => c >= cur))).sort((a, b) => a - b);
@@ -1775,6 +1792,7 @@ $('#fileCsv').addEventListener('change', async e => {
 });
 $('#btnResetCsv').addEventListener('click', () => { localStorage.removeItem(LS.csv); init(); });
 $('#btnPrint').addEventListener('click', () => window.print());
+$('#flagsCard').addEventListener('toggle', () => localStorage.setItem('feeding-dash-flags-open', $('#flagsCard').open ? '1' : '0'));
 $('#btnPrintSummary').addEventListener('click', () => { document.body.classList.add('print-summary'); window.print(); }); window.addEventListener('afterprint', () => document.body.classList.remove('print-summary'));
 let themeBeforePrint = null; window.addEventListener('beforeprint', () => { themeBeforePrint = document.documentElement.dataset.theme || ''; document.documentElement.dataset.theme = 'light'; renderAll(); }); window.addEventListener('afterprint', () => { if (themeBeforePrint) document.documentElement.dataset.theme = themeBeforePrint; else delete document.documentElement.dataset.theme; renderAll(); });
 const SET_FIELDS = { name: 'setName', birth: 'setBirth', kcalBase: 'setKcalBase', kcalFort: 'setKcalFort', fortStart: 'setFortStart', needsKcalLow: 'setNeedsKcalLow', needsKcalHigh: 'setNeedsKcalHigh', prescribedKcal: 'setPrescribedKcal', needsFluid: 'setNeedsFluid', prescribedFluid: 'setPrescribedFluid', targetsNote: 'setTargetsNote', extraWeights: 'setExtraWeights', lengths: 'setLengths', headCirc: 'setHeadCirc', proteinPer100ml: 'setProteinPer100ml', proteinLow: 'setProteinLow', proteinHigh: 'setProteinHigh', medName: 'setMedName', medDoseMg: 'setMedDoseMg', medDosesPerDay: 'setMedDosesPerDay', medNote: 'setMedNote', medRangeLow: 'setMedRangeLow', medRangeHigh: 'setMedRangeHigh', medRangeNote: 'setMedRangeNote', notes: 'setNotes' };
