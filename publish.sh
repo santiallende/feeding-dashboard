@@ -44,5 +44,5 @@ through=$(python3 -c "import csv,sys; print(max(r['Start'] for r in csv.DictRead
 git add -A
 if git diff --cached --quiet; then echo "Nothing new to publish (data through $through already live)."; exit 0; fi
 git commit -q -m "Update data through $through"
-git push -q
+git push -q -u origin main
 echo "Published data through $through. The site updates within a minute or two."
